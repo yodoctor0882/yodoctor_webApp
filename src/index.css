@@ -1,0 +1,60 @@
+
+
+
+ @import "tailwindcss";
+
+/* ── CUSTOM FONTS & ANIMATIONS (Tailwind v4) ── */
+@theme {
+  --font-playfair: "Playfair Display", serif;
+  --font-dm:       "DM Sans", sans-serif;
+
+  --animate-fade-up:   fadeUp   0.55s cubic-bezier(0.22,1,0.36,1) both;
+  --animate-fade-in:   fadeIn   0.20s ease both;
+  --animate-scale-in:  scaleIn  0.25s cubic-bezier(0.34,1.56,0.64,1) both;
+  --animate-pulse-dot: pulseDot 2s infinite;
+}
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── LEGACY CLASS (purane code ke liye) ── */
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* PDF fix (Tailwind oklch issue) */
+.no-tailwind * {
+  color: #000 !important;
+  background: #fff !important;
+  border-color: #000 !important;
+  box-shadow: none !important;
+}
+
+
+/* Hide Scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

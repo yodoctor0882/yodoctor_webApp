@@ -1,0 +1,453 @@
+{
+  "cities": [
+    {
+      "id": "1",
+      "name": "Delhi"
+    },
+    {
+      "id": "2",
+      "name": "Mumbai"
+    },
+    {
+      "id": "3",
+      "name": "Bhopal"
+    },
+    {
+      "id": "4",
+      "name": "Indore"
+    },
+    {
+      "id": "5",
+      "name": "Jhansi"
+    },
+    {
+      "id": "6",
+      "name": "Jabalpur"
+    }
+  ],
+
+
+
+  "diseases": [
+    {
+      "id": "1",
+      "name": "Dermatologist"
+    },
+    {
+      "id": "2",
+      "name": "Neurology"
+    },
+    {
+      "id": "3",
+      "name": "Pediatrician"
+    },
+    {
+      "id": "4",
+      "name": "General physician"
+    },
+    {
+      "id": "5",
+      "name": "Homoeopath"
+    },
+    {
+      "id": "6",
+      "name": "Aurveda"
+    },
+    {
+      "id": "7",
+      "name": "Cardiology"
+    }
+  ],
+  "doctor": [
+    {
+      "id": "1",
+      "image": "/images/doctor1.jpg",
+      "name": "Dr. Rohan Sharma",
+      "specialization": "Cardiology",
+      "Degree": "MD Dermatologist,MBBS",
+      "Year of experience": 10,
+      "city": "Jhansi",
+      "Rating": 4.9,
+      "Clinic_Fees": "500 fee",
+      "description": "Expert in cardiology with 10+ years of experience in patient care."
+    },
+    {
+      "id": "2",
+      "image": "/images/doctor2.avif",
+      "name": "Dr. Priya Verma",
+      "specialization": "Pediatrician",
+      "Degree": "MD Dermatologist,MBBS",
+      "Year of experience": 8,
+      "city": "Delhi",
+      "Rating": 4.7,
+      "Clinic_Fees": "500 fee",
+      "description": "Pediatrician with focus on child wellness and preventive care."
+    },
+    {
+      "id": "3",
+      "image": "/images/doctor3.jpg",
+      "name": "Dr. Aakash Singh",
+      "specialization": "Homoeopath",
+      "Degree": "MD Dermatologist,MBBS",
+      "Year of experience": 5,
+      "city": "Indore",
+      "Rating": 5.7,
+      "Clinic_Fees": "500 fee",
+      "description": "Specialist in advanced joint treatments and Homoeopath."
+    },
+    {
+      "id": "4",
+      "image": "/images/doctor4.jpg",
+      "name": "Dr. Kanika Sharma",
+      "specialization": "Dermatologist",
+      "Degree": "MD Dermatologist,MBBS",
+      "Year of experience": 5,
+      "city": "Bhopal",
+      "Rating": 5.7,
+      "Clinic_Fees": "500 fee",
+      "description": "Specialist in advanced joint treatments and Homoeopath."
+    },
+    {
+      "id": "5",
+      "image": "/images/doctor5.webp",
+      "name": "Dr. Priyanka Patel",
+      "specialization": "Dermatologist",
+      "Degree": "MD Dermatologist,MBBS",
+      "Year of experience": 5,
+      "city": "Bhopal",
+      "Rating": 5.7,
+      "Clinic_Fees": "500 fee",
+      "description": "Specialist in advanced joint treatments and Homoeopath."
+    },
+    {
+      "id": "6",
+      "image": "/images/doctor6.jpg",
+      "name": "Dr. Md Rauf Kallu (RK)",
+      "specialization": "Dermatologist",
+      "Degree": "MD Dermatologist,MBBS",
+      "Year of experience": 5,
+      "city": "Bhopal",
+      "Rating": 5.7,
+      "Clinic_Fees": "500 fee",
+      "description": "Specialist in advanced joint treatments and Homoeopath."
+    },
+    {
+      "id": "7",
+      "image": "/images/doctor7.avif",
+      "name": "Dr. Rajiya Sulatan",
+      "specialization": "Homoeopath",
+      "Degree": "MD Dermatologist,MBBS",
+      "Year of experience": 5,
+      "city": "Bhopal",
+      "Rating": 5.7,
+      "Clinic_Fees": "500 fee",
+      "description": "Specialist in advanced joint treatments and Homoeopath."
+    },
+    {
+      "id": "8",
+      "image": "/images/doctor8.jpg",
+      "name": "Dr. Bengali",
+      "specialization": "Homoeopath",
+      "Degree": "MD Dermatologist,MBBS",
+      "Year of experience": 5,
+      "city": "Indore",
+      "Rating": 5.7,
+      "Clinic_Fees": "500 fee",
+      "description": "Specialist in advanced joint treatments and Homoeopath."
+    }
+  ],
+  "Appointment_history": [
+    {
+      "id": "1",
+      "doctorName": "Dr. Priya Sharma",
+      "specialization": "Cardiologist",
+      "date": "2025-10-25",
+      "time": "10:30 AM",
+      "hospital": "City Care Hospital",
+      "status": "Completed"
+    },
+    {
+      "id": "2",
+      "doctorName": "Dr. Rohan Mehta",
+      "specialization": "Dermatologist",
+      "date": "2025-10-29",
+      "time": "2:00 PM",
+      "hospital": "Wellness Clinic",
+      "status": "Cancelled"
+    },
+    {
+      "id": "3",
+      "doctorName": "Dr. Neha Singh",
+      "specialization": "Dentist",
+      "date": "2025-11-02",
+      "time": "4:45 PM",
+      "hospital": "Smile Dental Care",
+      "status": "Upcoming"
+    },
+    {
+      "id": "4",
+      "doctorName": "Dr. Priyanka Patel",
+      "specialization": "Cardiology",
+      "date": "2025-11-02",
+      "time": "6:00 PM",
+      "hospital": " cardiology with  patient care",
+      "status": "Cancelled"
+    },
+    {
+      "id": "5",
+      "doctorName": "Dr. Kanika Kapoor",
+      "specialization": "Dermatologist ",
+      "date": "2025-11-02",
+      "time": "10:00 PM",
+      "hospital": "Wellness Clinic",
+      "status": "Upcoming"
+    }
+  ],
+  "users": [
+    {
+      "id": "e120",
+      "name": "Vineet kushwaha ",
+      "email": "vineetkushwaha2010@gmail.com",
+      "password": "Test@123",
+      "confirmPassword": "Test@123",
+      "gender": "male",
+      "dob": "2004-08-02",
+      "fullName": "vineet",
+      "phone": "8839003275"
+    }
+  ],
+  "doctors": [
+    {
+      "id": "d878",
+      "doctorId": "1234",
+      "doctorName": "Dr. Ananya Sharma",
+      "clinicName": "City Care Clinic",
+      "phone": "9876543210",
+      "email": "doctor@example.com",
+      "consultationFee": "500",
+      "timings": "9:50 AM - 5:00 PM",
+      "password": "Test@123",
+      "availability": {
+        "monFri": true,
+        "wedFri": false,
+        "weekends": false
+      }
+    },
+    {
+      "id": "fe4e",
+      "doctorName": "Ajay",
+      "clinicName": "Ajay",
+      "licenseNumber": "12345",
+      "degree": "MBBS",
+      "specialization": "fever",
+      "address": "village post majhigawan, tehsil teonthar, district rewa, madhya pradesh",
+      "city": "Bhopal",
+      "consultationFee": "123",
+      "timings": "10 Am - 11 Am",
+      "availableDays": [
+        "Sat",
+        "Sun"
+      ],
+      "password": "Test@123",
+      "doctorId": "12345",
+      "status": "pending"
+    }
+  ],
+  "familyMembers": [
+    {
+      "id": "c49f",
+      "firstName": "Vineet",
+      "lastName": "Kushwaha ",
+      "gender": "Male",
+      "dob": "2004-08-02",
+      "age": 21,
+      "relation": "Son"
+    },
+    {
+      "id": "c37b",
+      "firstName": "ajay",
+      "lastName": "singh",
+      "gender": "Male",
+      "dob": "2006-03-08",
+      "age": 19,
+      "relation": "Brother"
+    },
+    {
+      "id": "4178",
+      "firstName": "rahul",
+      "lastName": "singh",
+      "gender": "Male",
+      "dob": "2001-03-12",
+      "age": 24,
+      "relation": "Other"
+    },
+    {
+      "id": "263f",
+      "firstName": "vikash",
+      "lastName": "kumar",
+      "gender": "Male",
+      "dob": "2004-03-04",
+      "age": 21,
+      "relation": "Brother"
+    },
+    {
+      "id": "bf62",
+      "firstName": "Anil",
+      "lastName": "kumar",
+      "gender": "Male",
+      "dob": "2002-12-12",
+      "age": 23,
+      "relation": "Brother"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "a1",
+      "doctorId": "1234",
+      "patientName": "Rohan Mehta",
+      "status": "Waiting"
+    },
+    {
+      "id": "a2",
+      "doctorId": "1234",
+      "patientName": "Priya Sharma",
+      "status": "In Progress"
+    },
+    {
+      "id": "a3",
+      "doctorId": "1234",
+      "patientName": "Amit Patel",
+      "status": "Consulted"
+    },
+    {
+      "id": "abc2",
+      "doctorId": "4",
+      "doctorName": "Dr. Kanika Sharma",
+      "patientType": "self",
+      "familyMember": null,
+      "date": "Today",
+      "time": "10:00 AM",
+      "status": "Upcoming"
+    },
+    {
+      "id": "0ba2",
+      "doctorId": "4",
+      "doctorName": "Dr. Kanika Sharma",
+      "patientType": "self",
+      "familyMember": null,
+      "date": "3313-12-31",
+      "time": "10:30 AM",
+      "status": "Upcoming"
+    }
+  ],
+  "analytics": {
+    "day": {
+      "totalAppointments": 18,
+      "totalRevenue": 5200,
+      "activePatients": 6
+    },
+    "week": {
+      "totalAppointments": 124,
+      "totalRevenue": 45230,
+      "activePatients": 38
+    },
+    "month": {
+      "totalAppointments": 512,
+      "totalRevenue": 186500,
+      "activePatients": 94
+    }
+  },
+  "healthTimeline": [
+    {
+      "id": "1766317509051",
+      "type": "Medical Record",
+      "title": "Gemini_Generated_Image_7kcm9s7kcm9s7kcm.png",
+      "date": "21/12/2025"
+    }
+  ],
+  "medicalRecords": [
+    {
+      "id": "1766317509021",
+      "name": "Gemini_Generated_Image_7kcm9s7kcm9s7kcm.png",
+      "type": "Lab Report",
+      "uploadedBy": "Patient",
+      "fileUrl": "blob:http://localhost:5173/c2ad2ee0-c084-4779-b6c2-3af96738c174",
+      "date": "21/12/2025"
+    }
+  ],
+  "doctorStatus": [
+    {
+      "id": "d878",
+      "doctorId": "1234",
+      "isOnline": true
+    }
+  ],
+  "tokenCounter": [
+    {
+      "id": "global",
+      "lastTokenNumber": 0,
+      "lastTokenDate": "Mon Dec 22 2025"
+    }
+  ],
+  "liveQueue": [
+    {
+      "id": "1",
+      "doctorId": "1234",
+      "tokenId": "T001",
+      "patientName": "Rohan Mehta",
+      "age": 29,
+      "complaint": "Fever and Cough",
+      "status": "Waiting"
+    }
+  ],
+  "onlineAppointments": [
+    {
+      "id": "oa1",
+      "doctorId": "1234",
+      "patientName": "Amit Patel",
+      "dateISO": "2025-01-20",
+      "time": "10:30 AM",
+      "status": "Completed",
+      "meetLink": "https://meet.google.com",
+      "startedAt": "2025-12-20T18:24:17.295Z",
+      "completedAt": "2025-12-20T18:24:26.401Z"
+    }
+  ],
+  "doctorNotes": [],
+  "walkinQueue": [
+    {
+      "id": "w1",
+      "doctorId": "1234",
+      "token": 1,
+      "name": "Rohan Mehta",
+      "status": "Completed",
+      "source": "Walk-in",
+      "createdAt": "2025-01-20T10:00:00Z",
+      "startConsultingAt": "2025-12-20T18:31:16.902Z",
+      "completedAt": "2025-12-20T18:31:19.480Z",
+      "phone": "9999999999",
+      "type": "Physical",
+      "etaMinutes": 5
+    },
+    {
+      "id": "w2",
+      "doctorId": "12345",
+      "name": "Rohan Mehta",
+      "phone": "9999999999",
+      "type": "Physical",
+      "token": 2,
+      "status": "Waiting",
+      "createdAt": "2025-01-20T10:00:00Z",
+      "etaMinutes": 5,
+      "source": "Manual",
+      "completedAt": "2025-12-20T18:31:19.480Z",
+      "startConsultingAt": "2025-12-20T18:31:16.902Z"
+    }
+  ],
+  "doctorSettings": [
+    {
+      "id": "1234",
+      "avgConsultTime": 7
+    }
+  ]
+}
