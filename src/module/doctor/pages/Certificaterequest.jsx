@@ -128,7 +128,7 @@ function SectionCard({ title, children, className = "" }) {
 
 function MetricCard({ label, value, accent = false, warn = false }) {
   return (
-    <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+    <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex-1 min-w-[110px] sm:flex-none sm:min-w-0">
       <p className="text-md text-gray-600 mb-1">{label}</p>
       <p
         className={`text-2xl font-semibold ${warn ? "text-amber-600" : accent ? "text-teal-600" : "text-gray-800"}`}
@@ -242,18 +242,18 @@ function AllRequests({ requests, onReview }) {
   ).length;
 
   return (
-    <div className="p-5 sm:p-7">
+    <div className="p-4 sm:p-5 lg:p-7">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 lg:mb-7">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
             Certificate Requests
           </h1>
           <p className="text-md text-gray-700 mt-1">
             Review and manage patient certificate requests
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           <MetricCard label="Pending" value={pendingCount} accent />
           <MetricCard label="Total" value={requests.length} />
         </div>
@@ -287,82 +287,148 @@ function AllRequests({ requests, onReview }) {
         ))}
       </div>
 
-      {/* Table */}
-      <TableShell
-        headers={[
-          "Request ID",
-          "Patient",
-          "Type",
-          "Submitted",
-          "Status",
-          "Action",
-        ]}
-      >
+      {/* Table — tablet & up */}
+      <div className="hidden sm:block">
+        <TableShell
+          headers={[
+            "Request ID",
+            "Patient",
+            "Type",
+            "Submitted",
+            "Status",
+            "Action",
+          ]}
+        >
+          {filtered.length === 0 ? (
+            <EmptyState message="No requests match your filters." />
+          ) : (
+            filtered.map((r) => (
+              <tr
+                key={r.id}
+                className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
+              >
+                <td className="px-5 py-4">
+                  <span className="font-mono text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">
+                    {r.id}
+                  </span>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-medium text-gray-800 whitespace-nowrap">
+                      {r.name}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-5 py-4">
+                  <span
+                    className={`inline-flex items-center text-md font-medium px-2.5 py-1 rounded-full ${TYPE_BADGE[r.type] || "bg-gray-100 text-gray-600 ring-1 ring-gray-200"}`}
+                  >
+                    {r.type}
+                  </span>
+                </td>
+                <td className="px-5 py-4 text-md text-gray-400 whitespace-nowrap">
+                  {r.date}
+                </td>
+                <td className="px-5 py-4">
+                  <Badge status={r.status} text={r.statusText} />
+                </td>
+                <td className="px-5 py-4 ">
+                  {["pending", "verification", "payment_verified"].includes(
+                    r.status,
+                  ) ? (
+                    <button
+                      onClick={() => onReview(r.id)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-600 text-white text-sm font-medium rounded-xl hover:bg-teal-700 active:scale-95 transition-all"
+                    >
+                      Review
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M3 8h10M9 4l4 4-4 4" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <button className="px-3.5 py-1.5 border border-gray-200 text-gray-500 text-md font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                      View
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))
+          )}
+        </TableShell>
+      </div>
+
+      {/* Card list — phone only */}
+      <div className="sm:hidden flex flex-col gap-3">
         {filtered.length === 0 ? (
-          <EmptyState message="No requests match your filters." />
+          <div className="bg-white border border-gray-200 rounded-2xl py-12 text-center text-sm text-gray-400">
+            No requests match your filters.
+          </div>
         ) : (
           filtered.map((r) => (
-            <tr
+            <div
               key={r.id}
-              className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
+              className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-3"
             >
-              <td className="px-5 py-4">
-                <span className="font-mono text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">
-                  {r.id}
-                </span>
-              </td>
-              <td className="px-5 py-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="font-medium text-gray-800 whitespace-nowrap">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-800 truncate">
                     {r.name}
+                  </p>
+                  <span className="font-mono text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-lg inline-block mt-1">
+                    {r.id}
                   </span>
                 </div>
-              </td>
-              <td className="px-5 py-4">
+                <Badge status={r.status} text={r.statusText} />
+              </div>
+              <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`inline-flex items-center text-md font-medium px-2.5 py-1 rounded-full ${TYPE_BADGE[r.type] || "bg-gray-100 text-gray-600 ring-1 ring-gray-200"}`}
+                  className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full ${TYPE_BADGE[r.type] || "bg-gray-100 text-gray-600 ring-1 ring-gray-200"}`}
                 >
                   {r.type}
                 </span>
-              </td>
-              <td className="px-5 py-4 text-md text-gray-400 whitespace-nowrap">
-                {r.date}
-              </td>
-              <td className="px-5 py-4">
-                <Badge status={r.status} text={r.statusText} />
-              </td>
-              <td className="px-5 py-4 ">
-                {["pending", "verification", "payment_verified"].includes(
-                  r.status,
-                ) ? (
-                  <button
-                    onClick={() => onReview(r.id)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-600 text-white text-sm font-medium rounded-xl hover:bg-teal-700 active:scale-95 transition-all"
+                <span className="text-xs text-gray-400 whitespace-nowrap">
+                  {r.date}
+                </span>
+              </div>
+              {["pending", "verification", "payment_verified"].includes(
+                r.status,
+              ) ? (
+                <button
+                  onClick={() => onReview(r.id)}
+                  className="w-full inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-teal-600 text-white text-sm font-medium rounded-xl hover:bg-teal-700 active:scale-95 transition-all"
+                >
+                  Review
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    Review
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M3 8h10M9 4l4 4-4 4" />
-                    </svg>
-                  </button>
-                ) : (
-                  <button className="px-3.5 py-1.5 border border-gray-200 text-gray-500 text-md font-medium rounded-xl hover:bg-gray-50 transition-colors">
-                    View
-                  </button>
-                )}
-              </td>
-            </tr>
+                    <path d="M3 8h10M9 4l4 4-4 4" />
+                  </svg>
+                </button>
+              ) : (
+                <button className="w-full px-3.5 py-2 border border-gray-200 text-gray-500 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                  View
+                </button>
+              )}
+            </div>
           ))
         )}
-      </TableShell>
+      </div>
 
       {/* Footer count */}
       {filtered.length > 0 && (
@@ -437,20 +503,38 @@ function ReviewPatient({
   ];
 
   return (
-    <div className="p-5 sm:p-7">
+    <div className="p-4 sm:p-5 lg:p-7">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900 tracking-tight">
+      <div className="mb-6 flex items-center gap-3">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="md:hidden inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0"
+            aria-label="Back to requests"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M10 3 5 8l5 5" />
+            </svg>
+          </button>
+        )}
+        <h1 className="text-lg sm:text-xl font-semibold text-gray-900 tracking-tight">
           Review Request
         </h1>
       </div>
 
-      <div
-        className="flex flex-col lg:grid lg:gap-5"
-        style={{ gridTemplateColumns: "1fr 1.4fr" }}
-      >
+      <div className="flex flex-col md:grid md:grid-cols-2 lg:grid-cols-[1fr_1.4fr] md:gap-5">
         {/* ── Left Column ── */}
-        <div className="flex flex-col gap-4 mb-4 lg:mb-0">
+        <div className="flex flex-col gap-4 mb-4 md:mb-0">
           {/* Patient Info */}
           <SectionCard title="Patient Information">
             <div className="flex items-center gap-3 mb-5">
@@ -469,7 +553,9 @@ function ReviewPatient({
               {infoRows.map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl px-3.5 py-3">
                   <p className="text-xs text-gray-400 mb-0.5">{label}</p>
-                  <p className="text-md font-semibold text-gray-700">{val}</p>
+                  <p className="text-md font-semibold text-gray-700 break-words">
+                    {val}
+                  </p>
                 </div>
               ))}
             </div>
@@ -501,7 +587,7 @@ function ReviewPatient({
                         <polyline points="14 2 14 8 20 8" />
                       </svg>
                     </div>
-                    <p className="text-sm text-gray-600 font-medium flex-1 truncate">
+                    <p className="text-sm text-gray-600 font-medium flex-1 truncate min-w-0">
                       {doc.file_url ? doc.file_url.split("/").pop() : "No File"}
                     </p>
                     <a
@@ -512,7 +598,7 @@ function ReviewPatient({
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs font-medium text-teal-600"
+                      className="text-xs font-medium text-teal-600 flex-shrink-0"
                     >
                       View →
                     </a>
@@ -777,18 +863,18 @@ function IssuedCerts({ onViewPdf }) {
   }).length;
 
   return (
-    <div className="p-5 sm:p-7">
+    <div className="p-4 sm:p-5 lg:p-7">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-7">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 lg:mb-7">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">
+          <h1 className="text-lg sm:text-xl font-semibold text-gray-900 tracking-tight">
             Issued Certificates
           </h1>
           <p className="text-md text-gray-700 mt-1">
             Certificates you have approved and generated
           </p>
         </div>
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-3 flex-wrap w-full sm:w-auto">
           <MetricCard label="Total Issued" value={issuedCertificates.length} />
           <MetricCard label="This Month" value={thisMonthCount} accent />
           <MetricCard
@@ -827,80 +913,145 @@ function IssuedCerts({ onViewPdf }) {
         </select>
       </div>
 
-      {/* Table */}
-      <TableShell
-        headers={[
-          "Cert ID",
-          "Patient",
-          "Type",
-          "Issued On",
-          "Expires",
-          "Actions",
-        ]}
-        minWidth="620px"
-      >
+      {/* Table — tablet & up */}
+      <div className="hidden sm:block">
+        <TableShell
+          headers={[
+            "Cert ID",
+            "Patient",
+            "Type",
+            "Issued On",
+            "Expires",
+            "Actions",
+          ]}
+          minWidth="620px"
+        >
+          {filtered.length === 0 ? (
+            <EmptyState message="No issued certificates found." />
+          ) : (
+            filtered.map((c) => (
+              <tr
+                key={c.id}
+                className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
+              >
+                <td className="px-5 py-4">
+                  <span className="font-mono text-sm  bg-gray-100 px-2.5 py-1 rounded-lg">
+                    {c.id}
+                  </span>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-medium text-gray-800">{c.patient}</span>
+                  </div>
+                </td>
+                <td className="px-5 py-4">
+                  <span
+                    className={`inline-flex items-center text-md font-medium px-2.5 py-1 rounded-full ${TYPE_BADGE[c.type] || "bg-gray-100 text-gray-600 ring-1 ring-gray-200"}`}
+                  >
+                    {c.type}
+                  </span>
+                </td>
+                <td className="px-5 py-4 text-md ">{c.issued}</td>
+                <td className="px-5 py-4">
+                  {c.expiringSoon ? (
+                    <span className="inline-flex items-center gap-1.5 text-md font-medium text-amber-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block animate-pulse" />
+                      {c.expires}
+                    </span>
+                  ) : (
+                    <span className="text-md ">{c.expires}</span>
+                  )}
+                </td>
+                <td className="px-5 py-4">
+                  <button
+                    onClick={() => onViewPdf(c)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium border bg-green-600 text-white cursor-pointer border-gray-200 rounded-xl text-gray-600 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 active:scale-95 transition-all"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M2 2h8l4 4v8H2z" />
+                      <path d="M10 2v4h4" />
+                      <path d="M5 9h6M5 11.5h4" />
+                    </svg>
+                    View PDF
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </TableShell>
+      </div>
+
+      {/* Card list — phone only */}
+      <div className="sm:hidden flex flex-col gap-3">
         {filtered.length === 0 ? (
-          <EmptyState message="No issued certificates found." />
+          <div className="bg-white border border-gray-200 rounded-2xl py-12 text-center text-sm text-gray-400">
+            No issued certificates found.
+          </div>
         ) : (
           filtered.map((c) => (
-            <tr
+            <div
               key={c.id}
-              className="border-t border-gray-100 hover:bg-gray-50 transition-colors"
+              className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col gap-3"
             >
-              <td className="px-5 py-4">
-                <span className="font-mono text-sm  bg-gray-100 px-2.5 py-1 rounded-lg">
-                  {c.id}
-                </span>
-              </td>
-              <td className="px-5 py-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="font-medium text-gray-800">{c.patient}</span>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-800 truncate">
+                    {c.patient}
+                  </p>
+                  <span className="font-mono text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-lg inline-block mt-1">
+                    {c.id}
+                  </span>
                 </div>
-              </td>
-              <td className="px-5 py-4">
                 <span
-                  className={`inline-flex items-center text-md font-medium px-2.5 py-1 rounded-full ${TYPE_BADGE[c.type] || "bg-gray-100 text-gray-600 ring-1 ring-gray-200"}`}
+                  className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${TYPE_BADGE[c.type] || "bg-gray-100 text-gray-600 ring-1 ring-gray-200"}`}
                 >
                   {c.type}
                 </span>
-              </td>
-              <td className="px-5 py-4 text-md ">{c.issued}</td>
-              <td className="px-5 py-4">
+              </div>
+              <div className="flex items-center justify-between gap-2 text-xs text-gray-500">
+                <span>Issued {c.issued}</span>
                 {c.expiringSoon ? (
-                  <span className="inline-flex items-center gap-1.5 text-md font-medium text-amber-700">
+                  <span className="inline-flex items-center gap-1.5 font-medium text-amber-700">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block animate-pulse" />
-                    {c.expires}
+                    Expires {c.expires}
                   </span>
                 ) : (
-                  <span className="text-md ">{c.expires}</span>
+                  <span>Expires {c.expires}</span>
                 )}
-              </td>
-              <td className="px-5 py-4">
-                <button
-                  onClick={() => onViewPdf(c)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium border bg-green-600 text-white cursor-pointer border-gray-200 rounded-xl text-gray-600 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 active:scale-95 transition-all"
+              </div>
+              <button
+                onClick={() => onViewPdf(c)}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-medium border bg-green-600 text-white cursor-pointer border-gray-200 rounded-xl active:scale-95 transition-all"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M2 2h8l4 4v8H2z" />
-                    <path d="M10 2v4h4" />
-                    <path d="M5 9h6M5 11.5h4" />
-                  </svg>
-                  View PDF
-                </button>
-              </td>
-            </tr>
+                  <path d="M2 2h8l4 4v8H2z" />
+                  <path d="M10 2v4h4" />
+                  <path d="M5 9h6M5 11.5h4" />
+                </svg>
+                View PDF
+              </button>
+            </div>
           ))
         )}
-      </TableShell>
+      </div>
 
       {filtered.length > 0 && (
         <p className="text-md text-gray-400 mt-3 px-1">
@@ -1044,43 +1195,47 @@ export default function Certificaterequest() {
 
   return (
     <div
-      className="font-dm min-h-screen bg-[#f5f3ef] "
+      className="font-dm min-h-screen bg-[#f5f3ef]"
       style={{
         backgroundImage:
           "radial-gradient(ellipse at 10% 5%, rgba(14,116,144,0.05) 0%, transparent 50%)",
       }}
     >
-      {TABS.map((t) => (
-        <button
-          key={t.id}
-          onClick={() => setActiveTab(t.id)}
-          className={`py-4 px-5 text-md font-medium transition-colors whitespace-nowrap border-b-2 -mb-px ${
-            activeTab === t.id
-              ? "border-teal-600 text-teal-700"
-              : "border-transparent text-gray-400 hover:text-gray-700"
-          }`}
-        >
-          {t.label}
-        </button>
-      ))}
+      <div className="flex overflow-x-auto bg-white/60 border-b border-gray-200 px-2 sm:px-5 sticky top-0 z-10 backdrop-blur">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`py-4 px-4 sm:px-5 text-md font-medium transition-colors whitespace-nowrap border-b-2 -mb-px flex-shrink-0 ${
+              activeTab === t.id
+                ? "border-teal-600 text-teal-700"
+                : "border-transparent text-gray-400 hover:text-gray-700"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      {activeTab === "requests" && (
-        <AllRequests requests={requests} onReview={handleReview} />
-      )}
-      {activeTab === "review" && (
-        <ReviewPatient
-          selectedRequest={selectedRequest}
-          documents={documents}
-          form={form}
-          setForm={setForm}
-          onApprove={handleApprove}
-          onReject={handleReject}
-          onBack={() => setActiveTab("requests")}
-          loading={loading}
-          actionLoading={actionLoading}
-        />
-      )}
-      {activeTab === "issued" && <IssuedCerts onViewPdf={handleViewPdf} />}
+      <div className="max-w-[1400px] mx-auto">
+        {activeTab === "requests" && (
+          <AllRequests requests={requests} onReview={handleReview} />
+        )}
+        {activeTab === "review" && (
+          <ReviewPatient
+            selectedRequest={selectedRequest}
+            documents={documents}
+            form={form}
+            setForm={setForm}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            onBack={() => setActiveTab("requests")}
+            loading={loading}
+            actionLoading={actionLoading}
+          />
+        )}
+        {activeTab === "issued" && <IssuedCerts onViewPdf={handleViewPdf} />}
+      </div>
 
       <CertificateModal
         cert={modalCert}
