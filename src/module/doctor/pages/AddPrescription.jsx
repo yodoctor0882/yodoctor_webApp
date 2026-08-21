@@ -9,47 +9,104 @@ const AddPrescription = () => {
 
   const [medicines, setMedicines] = useState("");
   const [instructions, setInstructions] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
-  const [isUpdate, setIsUpdate] = useState(false);
+
+  // Existing prescription mil gayi ya nahi
+  const [hasPrescription, setHasPrescription] = useState(false);
 
   /* ================= LOAD EXISTING PRESCRIPTION ================= */
   useEffect(() => {
     const loadPrescription = async () => {
       setFetchLoading(true);
+
       try {
         const res = await api.get(`/doctor/prescription/${id}`);
+
         if (res.data) {
           setMedicines(res.data.medicines || "");
           setInstructions(res.data.instructions || "");
-          setIsUpdate(true);
+          setHasPrescription(true);
         }
-      } catch {
-        console.log("No previous prescription");
+      } catch (error) {
+        // 404 means prescription does not exist yet
+        if (error.response?.status === 404) {
+          setHasPrescription(false);
+        } else {
+          console.error("Get Prescription Error:", error);
+          notify.error(
+            error.response?.data?.message || "Failed to load prescription",
+          );
+        }
       } finally {
         setFetchLoading(false);
       }
     };
+
     loadPrescription();
   }, [id]);
 
   /* ================= SUBMIT ================= */
   const handleSubmit = async () => {
+    // Existing prescription ko dobara submit nahi karna
+    if (hasPrescription) {
+      notify.error("Prescription already added and cannot be modified");
+      return;
+    }
+
     if (!medicines.trim() && !instructions.trim()) {
       notify.info("Please add medicines or instructions");
       return;
     }
+
     try {
       setLoading(true);
+
       const res = await api.post(`/doctor/appointments/${id}/prescription`, {
-        medicines,
-        instructions,
+        medicines: medicines.trim() || null,
+        instructions: instructions.trim() || null,
       });
-      notify.success(res.data?.message || "Prescription saved successfully");
+
+      notify.success(res.data?.message || "Prescription added successfully");
+
+      // Save ke baad wapas live queue
       navigate("/doctordashboard/livequeue");
     } catch (error) {
-      console.error(error);
-      notify.error("Failed to save prescription");
+      console.error("Add Prescription Error:", error);
+
+      // Prescription already exists
+      if (error.response?.status === 409) {
+        notify.error(
+          error.response?.data?.message ||
+            "Prescription already added and cannot be modified",
+        );
+
+        // Backend ne confirm kar diya ki prescription exists
+        setHasPrescription(true);
+
+        return;
+      }
+
+      // Appointment completed nahi hai
+      if (error.response?.status === 400) {
+        notify.error(
+          error.response?.data?.message ||
+            "Prescription allowed only after appointment completion",
+        );
+        return;
+      }
+
+      // Doctor not found
+      if (error.response?.status === 404) {
+        notify.error(error.response?.data?.message || "Doctor not found");
+        return;
+      }
+
+      // Other server errors
+      notify.error(
+        error.response?.data?.message || "Failed to add prescription",
+      );
     } finally {
       setLoading(false);
     }
@@ -61,6 +118,7 @@ const AddPrescription = () => {
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
+
           <p className="text-[#64748B] text-sm font-medium">
             Loading prescription...
           </p>
@@ -73,7 +131,6 @@ const AddPrescription = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-6 flex items-start justify-center">
       <div className="w-full max-w-2xl bg-white border border-[#E2E8F0] rounded-2xl p-8 shadow-sm">
-
         {/* ── Header ── */}
         <div className="flex items-center gap-4 pb-5 mb-5 border-b border-[#E2E8F0]">
           <div className="w-11 h-11 bg-[#EEF2FF] rounded-xl flex items-center justify-center shrink-0">
@@ -91,23 +148,27 @@ const AddPrescription = () => {
               />
             </svg>
           </div>
+
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-[#0F172A]">
-              {isUpdate ? "Update Prescription" : "Add Prescription"}
+              {hasPrescription ? "Prescription" : "Add Prescription"}
             </h2>
+
             <p className="text-[#64748B] text-sm mt-0.5">
-              {isUpdate
-                ? "Edit the existing prescription details below"
+              {hasPrescription
+                ? "View prescription details for this completed appointment"
                 : "Fill in medicines and instructions for the patient"}
             </p>
           </div>
+
           <span className="inline-flex items-center gap-1.5 bg-[#EEF2FF] text-[#2563EB] text-xs font-semibold px-3 py-1 rounded-full border border-indigo-200">
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                isUpdate ? "bg-[#14B8A6]" : "bg-[#2563EB]"
+                hasPrescription ? "bg-[#14B8A6]" : "bg-[#2563EB]"
               }`}
             />
-            {isUpdate ? "Update" : "New"}
+
+            {hasPrescription ? "Added" : "New"}
           </span>
         </div>
 
@@ -123,8 +184,11 @@ const AddPrescription = () => {
             <circle cx="12" cy="12" r="10" />
             <path strokeLinecap="round" d="M12 8h.01M12 12v4" />
           </svg>
+
           <p className="text-[#1e40af] text-sm leading-relaxed">
-            At least one field — medicines or instructions — must be filled before saving.
+            {hasPrescription
+              ? "This prescription has already been added. It can be viewed but cannot be modified."
+              : "At least one field — medicines or instructions — must be filled before saving."}
           </p>
         </div>
 
@@ -146,13 +210,22 @@ const AddPrescription = () => {
             </svg>
             Medicines
           </label>
+
           <textarea
             value={medicines}
             onChange={(e) => setMedicines(e.target.value)}
-            placeholder={`e.g. Paracetamol 500mg — twice daily after meals\nCetirizine 10mg — once at night`}
+            placeholder={`e.g. Paracetamol 500mg — twice daily after meals
+Cetirizine 10mg — once at night`}
             rows={5}
-            className="w-full border-[1.5px] border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#0F172A] placeholder-[#94A3B8] bg-white focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 resize-none transition-all"
+            readOnly={hasPrescription}
+            disabled={loading}
+            className={`w-full border-[1.5px] border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#0F172A] placeholder-[#94A3B8] focus:outline-none resize-none transition-all ${
+              hasPrescription
+                ? "bg-[#F8FAFC] cursor-default"
+                : "bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+            }`}
           />
+
           <p className="text-xs text-[#64748B] mt-1.5 flex items-center gap-1">
             <svg
               className="w-3 h-3 text-[#94A3B8]"
@@ -164,7 +237,10 @@ const AddPrescription = () => {
               <circle cx="12" cy="12" r="10" />
               <path strokeLinecap="round" d="M12 8h.01M12 12v4" />
             </svg>
-            List each medicine on a new line
+
+            {hasPrescription
+              ? "Prescription medicines"
+              : "List each medicine on a new line"}
           </p>
         </div>
 
@@ -186,13 +262,21 @@ const AddPrescription = () => {
             </svg>
             Instructions
           </label>
+
           <textarea
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
             placeholder="e.g. Take medicines after food. Drink plenty of water. Avoid cold beverages. Rest for 2 days."
             rows={4}
-            className="w-full border-[1.5px] border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#0F172A] placeholder-[#94A3B8] bg-white focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 resize-none transition-all"
+            readOnly={hasPrescription}
+            disabled={loading}
+            className={`w-full border-[1.5px] border-[#E2E8F0] rounded-xl px-4 py-3 text-sm text-[#0F172A] placeholder-[#94A3B8] focus:outline-none resize-none transition-all ${
+              hasPrescription
+                ? "bg-[#F8FAFC] cursor-default"
+                : "bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10"
+            }`}
           />
+
           <p className="text-xs text-[#64748B] mt-1.5 flex items-center gap-1">
             <svg
               className="w-3 h-3 text-[#94A3B8]"
@@ -204,7 +288,10 @@ const AddPrescription = () => {
               <circle cx="12" cy="12" r="10" />
               <path strokeLinecap="round" d="M12 8h.01M12 12v4" />
             </svg>
-            Add dietary or lifestyle instructions for the patient
+
+            {hasPrescription
+              ? "Prescription instructions"
+              : "Add dietary or lifestyle instructions for the patient"}
           </p>
         </div>
 
@@ -214,8 +301,10 @@ const AddPrescription = () => {
         {/* ── Actions ── */}
         <div className="flex items-center justify-end gap-3">
           <button
+            type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 border-[1.5px] border-[#E2E8F0] rounded-lg text-sm font-medium text-[#64748B] bg-white hover:bg-[#F8FAFC] hover:border-[#94A3B8] hover:text-[#0F172A] transition-all cursor-pointer"
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-5 py-2.5 border-[1.5px] border-[#E2E8F0] rounded-lg text-sm font-medium text-[#64748B] bg-white hover:bg-[#F8FAFC] hover:border-[#94A3B8] hover:text-[#0F172A] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg
               className="w-4 h-4"
@@ -230,47 +319,51 @@ const AddPrescription = () => {
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-            Cancel
+            Back
           </button>
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-all ${
-              loading
-                ? "bg-[#2563EB]/60 cursor-not-allowed"
-                : "bg-[#2563EB] hover:bg-[#1D4ED8] cursor-pointer active:scale-[0.98]"
-            }`}
-          >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17 3v4H8M12 17v-6"
-                  />
-                </svg>
-                {isUpdate ? "Update Prescription" : "Save Prescription"}
-              </>
-            )}
-          </button>
+          {/* Existing prescription hone par Save button nahi */}
+          {!hasPrescription && (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading}
+              className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-all ${
+                loading
+                  ? "bg-[#2563EB]/60 cursor-not-allowed"
+                  : "bg-[#2563EB] hover:bg-[#1D4ED8] cursor-pointer active:scale-[0.98]"
+              }`}
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17 3v4H8M12 17v-6"
+                    />
+                  </svg>
+                  Save Prescription
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>

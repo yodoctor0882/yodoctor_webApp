@@ -15,7 +15,6 @@ const DoctorQRCodePage = () => {
         setQrValue(res.data.qrUrl);
         setDoctorId(res.data.doctorId);
       } catch {
-        // ✅ Fix #1 — alert ki jagah notify
         notify.error("Doctor not approved or unauthorized");
       } finally {
         setLoading(false);

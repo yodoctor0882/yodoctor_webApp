@@ -5,8 +5,9 @@ import { validateStep } from "../../../controllers/FormValidation";
 import { notify } from "../../../utils/notify";
 import Select from "react-select";
 import {
-  createRequest,
   uploadDocuments,
+  createPaymentOrder,
+  verifyPayment,
 } from "../../../services/certificateService";
 
 const certificateTypes = [
@@ -76,8 +77,6 @@ const DOC_FIELDS = [
   },
 ];
 
-// ─── Shared primitives ───────────────────────────────────────────────────────
-
 const StepCard = ({ children }) => (
   <div
     className="bg-white rounded-2xl overflow-hidden"
@@ -116,7 +115,11 @@ const FieldLabel = ({ children }) => (
   </label>
 );
 
-const Req = () => <span style={{ color: "#EF4444" }} className="ml-0.5">*</span>;
+const Req = () => (
+  <span style={{ color: "#EF4444" }} className="ml-0.5">
+    *
+  </span>
+);
 
 const FieldBox = ({ label, children }) => (
   <div>
@@ -201,8 +204,6 @@ const StyledTextarea = (props) => (
   />
 );
 
-// ─── Action Buttons ──────────────────────────────────────────────────────────
-
 const ActionButtons = ({
   onBack,
   onNext,
@@ -266,16 +267,14 @@ const ActionButtons = ({
           if (!submitting) {
             e.currentTarget.style.background = "#1D4ED8";
             e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow =
-              "0 6px 20px rgba(37,99,235,0.38)";
+            e.currentTarget.style.boxShadow = "0 6px 20px rgba(37,99,235,0.38)";
           }
         }}
         onMouseLeave={(e) => {
           if (!submitting) {
             e.currentTarget.style.background = "#2563EB";
             e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow =
-              "0 4px 14px rgba(37,99,235,0.30)";
+            e.currentTarget.style.boxShadow = "0 4px 14px rgba(37,99,235,0.30)";
           }
         }}
       >
@@ -306,8 +305,6 @@ const ActionButtons = ({
     )}
   </div>
 );
-
-// ─── File Upload Card ─────────────────────────────────────────────────────────
 
 const FileUploadCard = ({
   field,
@@ -423,8 +420,6 @@ const FileUploadCard = ({
   );
 };
 
-// ─── React-Select styles ──────────────────────────────────────────────────────
-
 const selectStyles = {
   control: (base, state) => ({
     ...base,
@@ -478,7 +473,8 @@ const dotStyle = (i, current) => {
       background: "#2563EB",
       boxShadow: "0 4px 12px rgba(37,99,235,0.30)",
     };
-  if (i < current) return { background: "#f0fdf9", border: "1.5px solid #14B8A6" };
+  if (i < current)
+    return { background: "#f0fdf9", border: "1.5px solid #14B8A6" };
   return { background: "#F8FAFC", border: "1px solid #E2E8F0" };
 };
 
@@ -491,13 +487,24 @@ const labelStyle = (i, current) => {
 // ─── Root Component ───────────────────────────────────────────────────────────
 
 const RequestCertificate = () => {
-  const { state } = useLocation();
+  const location = useLocation();
   const navigate = useNavigate();
-  const passedDoctor = state?.doctor || null;
+
+  const passedDoctor = location.state?.doctor || null;
+
+  const queryParams = new URLSearchParams(location.search);
+  const doctorIdFromUrl = queryParams.get("doctorId");
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [doctor, setDoctor] = useState(passedDoctor);
+  const [doctor, setDoctor] = useState(
+    passedDoctor
+      ? {
+          ...passedDoctor,
+          doctorId: passedDoctor.doctorId || passedDoctor.id,
+        }
+      : null,
+  );
   const [doctors, setDoctors] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -520,25 +527,62 @@ const RequestCertificate = () => {
     prescription: null,
   });
 
-  const isDoctorFixed = !!passedDoctor;
+  const [showPaymentSummary, setShowPaymentSummary] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
+
+  const isDoctorFixed = !!(passedDoctor || doctorIdFromUrl);
 
   const doctorOptions = doctors.map((doc) => ({
-    value: doc.doctorId,
+    value: doc.doctorId || doc.id,
     label: `${doc.doctorName} — ${doc.specialization}`,
   }));
 
-  useEffect(() => { fetchDoctors(); }, []);
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
 
   useEffect(() => {
-    if (passedDoctor && doctors.length > 0) {
-      const match = doctors.find((d) => d.doctorId === passedDoctor.doctorId);
-      setDoctor(match || passedDoctor);
+    if (!doctors.length) return;
+
+    if (passedDoctor) {
+      const passedId = passedDoctor.doctorId || passedDoctor.id;
+
+      const match = doctors.find(
+        (d) => String(d.doctorId || d.id) === String(passedId),
+      );
+
+      setDoctor(
+        match || {
+          ...passedDoctor,
+          doctorId: passedId,
+        },
+      );
+
+      return;
     }
-  }, [passedDoctor, doctors]);
+
+    if (doctorIdFromUrl) {
+      const match = doctors.find(
+        (d) => String(d.doctorId || d.id) === String(doctorIdFromUrl),
+      );
+
+      if (match) {
+        setDoctor({
+          ...match,
+          doctorId: match.doctorId || match.id,
+        });
+      }
+    }
+  }, [passedDoctor, doctors, doctorIdFromUrl]);
 
   const fetchDoctors = async () => {
     try {
-      const res = await searchVisitDoctors({ search: "", city: "", page: 1, limit: 50 });
+      const res = await searchVisitDoctors({
+        search: "",
+        city: "",
+        page: 1,
+        limit: 50,
+      });
       setDoctors(res.data?.data?.doctors || []);
     } catch (e) {
       console.error(e);
@@ -547,7 +591,8 @@ const RequestCertificate = () => {
 
   const validateFile = (file) => {
     const allowed = ["application/pdf", "image/jpeg", "image/png"];
-    if (!allowed.includes(file.type)) return "Only PDF, JPG, and PNG files are allowed.";
+    if (!allowed.includes(file.type))
+      return "Only PDF, JPG, and PNG files are allowed.";
     if (file.size > 5 * 1024 * 1024) return "File size must be less than 5 MB.";
     return null;
   };
@@ -556,35 +601,216 @@ const RequestCertificate = () => {
     const file = e.target.files[0];
     if (!file) return;
     const err = validateFile(file);
-    if (err) { setErrors((p) => ({ ...p, [field]: err })); return; }
+    if (err) {
+      setErrors((p) => ({ ...p, [field]: err }));
+      return;
+    }
     setDocuments((p) => ({ ...p, [field]: file }));
     setErrors((p) => ({ ...p, [field]: "" }));
   };
 
-  const handleDeleteDoc = (field) => setDocuments((p) => ({ ...p, [field]: null }));
+  const handleDeleteDoc = (field) =>
+    setDocuments((p) => ({ ...p, [field]: null }));
 
   const handleNext = () => {
-    const formData = { doctor, purpose, fullName, dob, gender, height, weight, documents };
+    const formData = {
+      doctor,
+      purpose,
+      fullName,
+      dob,
+      gender,
+      height,
+      weight,
+      documents,
+    };
     const errs = validateStep(currentStep, formData, validateFile);
     setErrors(errs);
     if (Object.keys(errs).length === 0) setCurrentStep((s) => s + 1);
   };
 
-  const handleBack = () => { if (currentStep > 0) setCurrentStep((s) => s - 1); };
+  const handleBack = () => {
+    if (currentStep > 0) setCurrentStep((s) => s - 1);
+  };
+
+const openRazorpayPayment = async (paymentData) => {
+  if (!window.Razorpay) {
+    throw new Error(
+      "Razorpay SDK is still loading. Please try again."
+    );
+  }
+
+  return new Promise((resolve, reject) => {
+    const options = {
+      key: paymentData.razorpayKeyId,
+
+      amount: Math.round(
+        Number(paymentData.totalAmount) * 100
+      ),
+
+      currency: paymentData.currency || "INR",
+
+      name: "YoDoctor",
+
+      description: "Certificate Service",
+
+      order_id: paymentData.orderId,
+
+      handler: async function (response) {
+        try {
+          const verifyRes = await verifyPayment({
+            razorpay_order_id:
+              response.razorpay_order_id,
+
+            razorpay_payment_id:
+              response.razorpay_payment_id,
+
+            razorpay_signature:
+              response.razorpay_signature,
+          });
+
+          if (!verifyRes.data?.success) {
+            throw new Error(
+              verifyRes.data?.message ||
+                "Payment verification failed."
+            );
+          }
+
+          resolve(verifyRes.data);
+        } catch (error) {
+          reject(error);
+        }
+      },
+
+      modal: {
+        ondismiss: () => {
+          reject(
+            new Error("Payment cancelled.")
+          );
+        },
+      },
+
+      theme: {
+        color: "#0086C3",
+      },
+    };
+
+    const razorpay =
+      new window.Razorpay(options);
+
+    razorpay.on(
+      "payment.failed",
+      (response) => {
+        reject(
+          new Error(
+            response.error?.description ||
+              "Payment failed."
+          )
+        );
+      }
+    );
+
+    razorpay.open();
+  });
+};
+
+  const handleProceedPayment = async () => {
+    if (!paymentData) return;
+
+    try {
+      setIsSubmitting(true);
+
+      const verifyResult = await openRazorpayPayment(paymentData);
+
+      // STEP 2: GET REQUEST ID
+      const requestId = verifyResult?.data?.requestId;
+
+      if (!requestId) {
+        throw new Error("Certificate request ID not received after payment.");
+      }
+
+      // STEP 3: UPLOAD DOCUMENTS
+      const hasDocuments = Object.values(documents).some(
+        (file) => file !== null,
+      );
+
+      if (hasDocuments) {
+        const fd = new FormData();
+
+        fd.append("request_id", requestId);
+
+        if (documents.profilePhoto) {
+          fd.append("profilePhoto", documents.profilePhoto);
+        }
+
+        if (documents.idProof) {
+          fd.append("idProof", documents.idProof);
+        }
+
+        if (documents.medicalReports) {
+          fd.append("medicalReports", documents.medicalReports);
+        }
+
+        if (documents.prescription) {
+          fd.append("prescription", documents.prescription);
+        }
+
+        await uploadDocuments(fd);
+      }
+
+      // STEP 4: CLOSE PAYMENT POPUP
+      setShowPaymentSummary(false);
+
+      notify.success("Payment successful and certificate request submitted.");
+
+      // STEP 5: MY CERTIFICATE
+      navigate("/client/mycertificate", {
+        state: {
+          success: true,
+          requestId,
+        },
+      });
+    } catch (error) {
+      console.error("Certificate payment error:", error);
+
+      notify.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Payment failed. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
+
     setIsSubmitting(true);
+
     try {
       const token = localStorage.getItem("token");
-      if (!token) { notify.error("Please login again."); navigate("/login"); return; }
-      if (!doctor?.doctorId) { notify.error("Please select an assigned doctor."); return; }
 
-      const res = await createRequest({
-        doctor_id: doctor.doctorId,
+      if (!token) {
+        notify.error("Please login again.");
+        navigate("/login");
+        return;
+      }
+
+      const assignedDoctorId = doctor?.doctorId || doctor?.id;
+
+      if (!assignedDoctorId) {
+        notify.error("Please select an assigned doctor.");
+        return;
+      }
+
+      notify.info("Preparing payment...");
+
+      const orderRes = await createPaymentOrder({
+        doctor_id: assignedDoctorId,
         certificate_type: selectedType,
         purpose,
         notes,
+
         full_name: fullName,
         dob,
         gender,
@@ -595,23 +821,31 @@ const RequestCertificate = () => {
         medications,
       });
 
-      const requestId = res.data.requestId;
-      const hasDocuments = Object.values(documents).some((f) => f !== null);
+      const newPaymentData = orderRes.data?.data;
 
-      if (hasDocuments) {
-        const fd = new FormData();
-        fd.append("request_id", requestId);
-        if (documents.profilePhoto) fd.append("profilePhoto", documents.profilePhoto);
-        if (documents.idProof) fd.append("idProof", documents.idProof);
-        if (documents.medicalReports) fd.append("medicalReports", documents.medicalReports);
-        if (documents.prescription) fd.append("prescription", documents.prescription);
-        await uploadDocuments(fd);
+      if (!newPaymentData) {
+        throw new Error("Payment order details not received.");
       }
 
-      notify.success("Certificate request submitted successfully!");
-      navigate("/client/mycertificate", { state: { success: true } });
-    } catch (e) {
-      notify.error(e.response?.data?.message || "Failed to submit request.");
+      // STEP 2: PAYMENT SUMMARY
+      console.log("Certificate Payment:", {
+        doctorFee: newPaymentData.doctorFee,
+        platformFee: newPaymentData.platformFee,
+        totalAmount: newPaymentData.totalAmount,
+      });
+
+      setPaymentData(newPaymentData);
+      setShowPaymentSummary(true);
+
+      notify.success("Payment details prepared. Please proceed with payment.");
+    } catch (error) {
+      console.error("Certificate payment error:", error);
+
+      notify.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to prepare payment.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -630,7 +864,6 @@ const RequestCertificate = () => {
       `}</style>
 
       <div className="max-w-3xl mx-auto">
-
         {/* Back link */}
         <button
           onClick={() => navigate(-1)}
@@ -655,7 +888,9 @@ const RequestCertificate = () => {
             <p className="text-[13px] mt-1" style={{ color: "#64748B" }}>
               Requesting from{" "}
               <span
-                onClick={() => navigate(`/client/doctor-profile/${doctor.doctorId}`)}
+                onClick={() =>
+                  navigate(`/client/doctor-profile/${doctor.doctorId}`)
+                }
                 className="font-semibold cursor-pointer hover:underline"
                 style={{ color: "#2563EB" }}
               >
@@ -743,7 +978,10 @@ const RequestCertificate = () => {
                   >
                     {type.title}
                   </p>
-                  <p className="text-[11px] sm:text-[14px] mt-0.5" style={{ color: "#64748B" }}>
+                  <p
+                    className="text-[11px] sm:text-[14px] mt-0.5"
+                    style={{ color: "#64748B" }}
+                  >
                     {type.description}
                   </p>
                 </div>
@@ -752,36 +990,115 @@ const RequestCertificate = () => {
 
             {/* Assigned Doctor */}
             <div className="mb-4">
-              <FieldLabel>🩺 Assigned Doctor <Req /></FieldLabel>
-              <Select
-                options={doctorOptions}
-                placeholder="Search doctor..."
-                styles={selectStyles}
-                isDisabled={isDoctorFixed}
-                value={
-                  doctor
-                    ? { value: doctor.doctorId, label: `${doctor.doctorName} — ${doctor.specialization}` }
-                    : null
-                }
-                onChange={(sel) => {
-                  if (isDoctorFixed) return;
-                  setDoctor(doctors.find((d) => d.doctorId === sel.value));
-                  setErrors((p) => ({ ...p, doctor: "" }));
-                }}
-              />
+              <FieldLabel>
+                🩺 Assigned Doctor <Req />
+              </FieldLabel>
+
+              {isDoctorFixed ? (
+                <div
+                  className="rounded-xl px-4 py-3"
+                  style={{
+                    background: "#EEF6FF",
+                    border: "1px solid #BFDBFE",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
+                      style={{
+                        background: "#DBEAFE",
+                        color: "#2563EB",
+                      }}
+                    >
+                      🩺
+                    </div>
+
+                    <div className="min-w-0">
+                      <p
+                        className="text-[14px] sm:text-[15px] font-bold"
+                        style={{ color: "#0F172A" }}
+                      >
+                        {doctor?.doctorName || "Assigned Doctor"}
+                      </p>
+
+                      <p
+                        className="text-[12px] sm:text-[13px]"
+                        style={{ color: "#64748B" }}
+                      >
+                        {doctor?.specialization || "Medical Specialist"}
+                      </p>
+                    </div>
+
+                    <div className="ml-auto">
+                      <span
+                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                        style={{
+                          color: "#166534",
+                          background: "#DCFCE7",
+                        }}
+                      >
+                        Assigned
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Select
+                  options={doctorOptions}
+                  placeholder="Search doctor..."
+                  styles={selectStyles}
+                  value={
+                    doctor
+                      ? {
+                          value: doctor.doctorId || doctor.id,
+                          label: `${doctor.doctorName} — ${doctor.specialization}`,
+                        }
+                      : null
+                  }
+                  onChange={(sel) => {
+                    if (!sel) return;
+
+                    const selected = doctors.find(
+                      (d) => String(d.doctorId || d.id) === String(sel.value),
+                    );
+
+                    setDoctor(
+                      selected
+                        ? {
+                            ...selected,
+                            doctorId: selected.doctorId || selected.id,
+                          }
+                        : null,
+                    );
+
+                    setErrors((p) => ({
+                      ...p,
+                      doctor: "",
+                    }));
+                  }}
+                />
+              )}
+
               <ErrMsg msg={errors.doctor} />
             </div>
 
             {/* Purpose */}
             <div className="mb-4">
-              <FieldLabel>📌 Purpose of Certificate <Req /></FieldLabel>
+              <FieldLabel>
+                📌 Purpose of Certificate <Req />
+              </FieldLabel>
               <StyledSelect
                 value={purpose}
-                onChange={(e) => { setPurpose(e.target.value); setErrors((p) => ({ ...p, purpose: "" })); }}
+                onChange={(e) => {
+                  setPurpose(e.target.value);
+                  setErrors((p) => ({ ...p, purpose: "" }));
+                }}
               >
                 <option value="">Select Purpose</option>
                 <option value="Employment / Job">Employment / Job</option>
-                <option value="Sports / Athletic activity">Sports / Athletic activity</option>
+                <option value="Sports / Athletic activity">
+                  Sports / Athletic activity
+                </option>
                 <option value="Travel">Travel</option>
                 <option value="School / Education">School / Education</option>
                 <option value="Insurance">Insurance</option>
@@ -801,7 +1118,11 @@ const RequestCertificate = () => {
               />
             </div>
 
-            <ActionButtons onCancel={() => navigate(-1)} onNext={handleNext} isFirst />
+            <ActionButtons
+              onCancel={() => navigate(-1)}
+              onNext={handleNext}
+              isFirst
+            />
           </StepCard>
         )}
 
@@ -811,18 +1132,30 @@ const RequestCertificate = () => {
             <StepHeading>Step 2 — Medical Details</StepHeading>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              <FieldBox  label="👤 Full Name">
-                <StyledInput type="text" placeholder="e.g. John Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+              <FieldBox label="👤 Full Name">
+                <StyledInput
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
                 <ErrMsg msg={errors.fullName} />
               </FieldBox>
 
               <FieldBox label="🎂 Date of Birth">
-                <StyledInput type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+                <StyledInput
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                />
                 <ErrMsg msg={errors.dob} />
               </FieldBox>
 
               <FieldBox label="⚧️ Gender">
-                <StyledSelect value={gender} onChange={(e) => setGender(e.target.value)}>
+                <StyledSelect
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                >
                   <option value="">Select Gender</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -832,30 +1165,53 @@ const RequestCertificate = () => {
               </FieldBox>
 
               <FieldBox label="🩸 Blood Group">
-                <StyledSelect value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)}>
-                  {bloodGroups.map((bg) => <option key={bg}>{bg}</option>)}
+                <StyledSelect
+                  value={bloodGroup}
+                  onChange={(e) => setBloodGroup(e.target.value)}
+                >
+                  {bloodGroups.map((bg) => (
+                    <option key={bg}>{bg}</option>
+                  ))}
                 </StyledSelect>
               </FieldBox>
 
               <FieldBox label="📏 Height (cm)">
-                <StyledInput type="number" placeholder="e.g. 170" value={height} onChange={(e) => setHeight(e.target.value)} />
+                <StyledInput
+                  type="number"
+                  placeholder="e.g. 170"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                />
                 <ErrMsg msg={errors.height} />
               </FieldBox>
 
               <FieldBox label="⚖️ Weight (kg)">
-                <StyledInput type="number" placeholder="e.g. 65" value={weight} onChange={(e) => setWeight(e.target.value)} />
+                <StyledInput
+                  type="number"
+                  placeholder="e.g. 65"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                />
                 <ErrMsg msg={errors.weight} />
               </FieldBox>
             </div>
 
             <div className="mb-4">
               <FieldBox label="🏥 Known Medical Conditions">
-                <StyledTextarea placeholder="Diabetes, Hypertension, Asthma..." value={conditions} onChange={(e) => setConditions(e.target.value)} />
+                <StyledTextarea
+                  placeholder="Diabetes, Hypertension, Asthma..."
+                  value={conditions}
+                  onChange={(e) => setConditions(e.target.value)}
+                />
               </FieldBox>
             </div>
             <div className="mb-6">
               <FieldBox label="💊 Current Medications">
-                <StyledTextarea placeholder="Metformin 500mg, Amlodipine..." value={medications} onChange={(e) => setMedications(e.target.value)} />
+                <StyledTextarea
+                  placeholder="Metformin 500mg, Amlodipine..."
+                  value={medications}
+                  onChange={(e) => setMedications(e.target.value)}
+                />
               </FieldBox>
             </div>
 
@@ -895,12 +1251,33 @@ const RequestCertificate = () => {
                 { label: "Date of Birth", value: dob, icon: "🎂" },
                 { label: "Gender", value: gender, icon: "⚧️" },
                 { label: "Blood Group", value: bloodGroup, icon: "🩸" },
-                { label: "Certificate Type", value: certificateTypes.find((c) => c.id === selectedType)?.title, icon: "📋" },
+                {
+                  label: "Certificate Type",
+                  value: certificateTypes.find((c) => c.id === selectedType)
+                    ?.title,
+                  icon: "📋",
+                },
                 { label: "Purpose", value: purpose, icon: "📌" },
-                { label: "Doctor", value: doctor?.doctorName || "Not assigned", icon: "🩺" },
-                { label: "Specialization", value: doctor?.specialization || "—", icon: "🏥" },
-                { label: "Height", value: height ? `${height} cm` : "—", icon: "📏" },
-                { label: "Weight", value: weight ? `${weight} kg` : "—", icon: "⚖️" },
+                {
+                  label: "Doctor",
+                  value: doctor?.doctorName || "Not assigned",
+                  icon: "🩺",
+                },
+                {
+                  label: "Specialization",
+                  value: doctor?.specialization || "—",
+                  icon: "🏥",
+                },
+                {
+                  label: "Height",
+                  value: height ? `${height} cm` : "—",
+                  icon: "📏",
+                },
+                {
+                  label: "Weight",
+                  value: weight ? `${weight} kg` : "—",
+                  icon: "⚖️",
+                },
               ].map((item, i) => (
                 <div
                   key={i}
@@ -933,7 +1310,10 @@ const RequestCertificate = () => {
                   >
                     📝 Notes
                   </p>
-                  <p className="text-[13px] sm:text-[14px]" style={{ color: "#0F172A" }}>
+                  <p
+                    className="text-[13px] sm:text-[14px]"
+                    style={{ color: "#0F172A" }}
+                  >
                     {notes}
                   </p>
                 </div>
@@ -963,7 +1343,10 @@ const RequestCertificate = () => {
                       <div
                         key={key}
                         className="rounded-xl p-3"
-                        style={{ border: "1px solid #E2E8F0", background: "#F8FAFC" }}
+                        style={{
+                          border: "1px solid #E2E8F0",
+                          background: "#F8FAFC",
+                        }}
                       >
                         <p
                           className="text-[10px] sm:text-xs font-semibold mb-2 truncate"
@@ -1024,6 +1407,231 @@ const RequestCertificate = () => {
               submitLabel="✅ Submit Request"
             />
           </StepCard>
+        )}
+        {/* =========================================================
+    PAYMENT SUMMARY
+========================================================= */}
+        {/* =========================================================
+    PAYMENT SUMMARY POPUP
+========================================================= */}
+        {showPaymentSummary && paymentData && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
+            style={{
+              background: "rgba(15, 23, 42, 0.55)",
+              backdropFilter: "blur(5px)",
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowPaymentSummary(false);
+              }
+            }}
+          >
+            <div
+              className="w-full max-w-md bg-white rounded-2xl overflow-hidden"
+              style={{
+                boxShadow: "0 25px 70px rgba(15,23,42,0.25)",
+                animation: "fadeUp 0.25s ease-out",
+              }}
+            >
+              {/* Header */}
+              <div
+                className="px-5 sm:px-6 py-4 flex items-center justify-between"
+                style={{
+                  borderBottom: "1px solid #E2E8F0",
+                  background: "#FFFFFF",
+                }}
+              >
+                <div>
+                  <h2
+                    className="text-lg sm:text-xl font-bold"
+                    style={{ color: "#0F172A" }}
+                  >
+                    Payment Details
+                  </h2>
+
+                  <p className="text-xs mt-0.5" style={{ color: "#64748B" }}>
+                    Review your payment before proceeding
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentSummary(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all"
+                  style={{
+                    color: "#64748B",
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#F1F5F9";
+                    e.currentTarget.style.color = "#0F172A";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#F8FAFC";
+                    e.currentTarget.style.color = "#64748B";
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Payment Body */}
+              <div className="px-5 sm:px-6 py-5">
+                {/* Payment Type */}
+                <div className="flex items-center justify-between mb-4">
+                  <span
+                    className="text-sm sm:text-[15px]"
+                    style={{ color: "#475569" }}
+                  >
+                    Payment Type
+                  </span>
+
+                  <span
+                    className="text-sm sm:text-[15px] font-semibold"
+                    style={{ color: "#0F172A" }}
+                  >
+                    Online
+                  </span>
+                </div>
+
+                {/* MRP */}
+                <div className="flex items-center justify-between mb-4">
+                  <span
+                    className="text-sm sm:text-[15px]"
+                    style={{ color: "#475569" }}
+                  >
+                    MRP Total
+                  </span>
+
+                  <span
+                    className="text-sm sm:text-[15px] font-semibold"
+                    style={{ color: "#0F172A" }}
+                  >
+                    ₹ {Number(paymentData.doctorFee || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                {/* Discount */}
+                <div className="flex items-center justify-between mb-4">
+                  <span
+                    className="text-sm sm:text-[15px]"
+                    style={{ color: "#475569" }}
+                  >
+                    Discount
+                  </span>
+
+                  <span
+                    className="text-sm sm:text-[15px] font-semibold"
+                    style={{ color: "#16A34A" }}
+                  >
+                    - ₹ 0.00
+                  </span>
+                </div>
+
+                {/* Platform Charges */}
+                <div className="flex items-center justify-between mb-4">
+                  <span
+                    className="text-sm sm:text-[15px]"
+                    style={{ color: "#475569" }}
+                  >
+                    Platform Charges
+                  </span>
+
+                  <span
+                    className="text-sm sm:text-[15px] font-semibold"
+                    style={{ color: "#0F172A" }}
+                  >
+                    ₹ {Number(paymentData.platformFee || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                {/* Taxes */}
+                <div className="flex items-center justify-between mb-4">
+                  <span
+                    className="text-sm sm:text-[15px]"
+                    style={{ color: "#475569" }}
+                  >
+                    Taxes
+                  </span>
+
+                  <span
+                    className="text-sm sm:text-[15px] font-semibold"
+                    style={{ color: "#0F172A" }}
+                  >
+                    ₹ {Number(paymentData.tax || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                {/* Divider */}
+                <div
+                  className="border-t my-4"
+                  style={{ borderColor: "#E2E8F0" }}
+                />
+
+                {/* Total */}
+                <div
+                  className="rounded-xl px-4 py-3.5 mb-5"
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span
+                      className="text-base sm:text-lg font-bold"
+                      style={{ color: "#0F172A" }}
+                    >
+                      Total Payable
+                    </span>
+
+                    <span
+                      className="text-lg sm:text-xl font-bold"
+                      style={{ color: "#2563EB" }}
+                    >
+                      ₹ {Number(paymentData.totalAmount || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Proceed Payment */}
+                <button
+                  type="button"
+                  onClick={handleProceedPayment}
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 rounded-xl text-sm sm:text-[15px] font-bold text-white transition-all"
+                  style={{
+                    background: isSubmitting ? "#94A3B8" : "#2563EB",
+                    cursor: isSubmitting ? "not-allowed" : "pointer",
+                    boxShadow: isSubmitting
+                      ? "none"
+                      : "0 4px 14px rgba(37,99,235,0.25)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSubmitting) {
+                      e.currentTarget.style.background = "#1D4ED8";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSubmitting) {
+                      e.currentTarget.style.background = "#2563EB";
+                    }
+                  }}
+                >
+                  {isSubmitting ? "Opening Payment..." : "Proceed to Payment"}
+                </button>
+
+                {/* Secure Payment */}
+                <p
+                  className="text-center text-[11px] mt-3"
+                  style={{ color: "#94A3B8" }}
+                >
+                  🔒 Secure payment powered by Razorpay
+                </p>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

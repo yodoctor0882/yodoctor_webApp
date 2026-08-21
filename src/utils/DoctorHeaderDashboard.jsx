@@ -28,8 +28,9 @@ const DoctorHeaderDashboard = ({ toggleSidebar, isSidebarOpen }) => {
   const navigate = useNavigate();
 
   const [loggedInUser, setLoggedInUser] = useState(getStoredUser);
-  const { image, setImage } = useImage();
-  const profileImage = image || DEFAULT_AVATAR;
+  const { doctorImage, setDoctorImage } = useImage();
+
+  const profileImage = doctorImage || DEFAULT_AVATAR;
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -84,64 +85,58 @@ const DoctorHeaderDashboard = ({ toggleSidebar, isSidebarOpen }) => {
     }
   };
 
-useEffect(() => {
-  fetchNotifications();
-  fetchUnread();
-}, []);
-useEffect(() => {
-  if (!socket || !connected) return;
+  useEffect(() => {
+    fetchNotifications();
+    fetchUnread();
+  }, []);
+  useEffect(() => {
+    if (!socket || !connected) return;
 
-  const handleNotification = (payload) => {
-    setNotifications((prev) => {
-      const exists = prev.some(
-        (item) =>
-          item.id === payload.id ||
-          (
-            item.title === payload.title &&
-            item.message === payload.message &&
-            item.appointmentId === payload.appointmentId
-          )
+    const handleNotification = (payload) => {
+      setNotifications((prev) => {
+        const exists = prev.some(
+          (item) =>
+            item.id === payload.id ||
+            (item.title === payload.title &&
+              item.message === payload.message &&
+              item.appointmentId === payload.appointmentId),
+        );
+
+        if (exists) return prev;
+
+        return [payload, ...prev];
+      });
+
+      setUnreadCount((prev) => prev + 1);
+    };
+
+    socket.on("notification", handleNotification);
+
+    return () => {
+      socket.off("notification", handleNotification);
+    };
+  }, [socket, connected]);
+
+  const handleNotificationClick = async (id) => {
+    try {
+      await markNotificationRead(id);
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
       );
 
-      if (exists) return prev;
-
-      return [payload, ...prev];
-    });
-
-    setUnreadCount((prev) => prev + 1);
+      setUnreadCount((prev) => Math.max(prev - 1, 0));
+    } catch (err) {
+      console.error(err);
+    }
   };
-
-  socket.on("notification", handleNotification);
-
-  return () => {
-    socket.off("notification", handleNotification);
-  };
-}, [socket, connected]);
-
-const handleNotificationClick = async (id) => {
-  try {
-    await markNotificationRead(id);
-
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === id
-          ? { ...n, is_read: true }
-          : n
-      )
-    );
-
-    setUnreadCount((prev) => Math.max(prev - 1, 0));
-  } catch (err) {
-    console.error(err);
-  }
-};
 
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
     localStorage.removeItem("token");
     localStorage.removeItem(DOCTOR_IMAGE_KEY);
     setLoggedInUser(null);
-    setImage(null);
+    setDoctorImage(null);
     setProfileOpen(false);
     setNotificationOpen(false);
     setIsLogoutModalOpen(false);
@@ -173,14 +168,8 @@ const handleNotificationClick = async (id) => {
         </button>
 
         <div className="flex-1 flex justify-center items-center gap-4">
-          
-          <img
-            src="/images/logo.webp" 
-            alt="logo"
-            className="h-8 md:hidden"
-          />
+          <img src="/images/logo.webp" alt="logo" className="h-8 md:hidden" />
         </div>
-
 
         <div className="flex items-center gap-3 relative">
           <div className="relative" ref={notificationRef}>

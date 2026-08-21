@@ -6,7 +6,14 @@ import {
   getTokenStatus,
   cancelAppointment,
 } from "../../services/patientService";
-import { Plus, Users, Calendar, Clock } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Plus,
+  Stethoscope,
+  FlaskConical,
+  FileCheck2,
+} from "lucide-react";
 import { FaFlask } from "react-icons/fa";
 import { notify } from "../../utils/notify";
 
@@ -282,64 +289,83 @@ export default function PatientDashboard() {
       </div>
 
       {/* ── Top Cards ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8 animate-[fadeUp_0.5s_0.08s_cubic-bezier(0.22,1,0.36,1)_both]">
-        {/* Upcoming visits card */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 mb-8 animate-[fadeUp_0.5s_0.08s_cubic-bezier(0.22,1,0.36,1)_both]">
+        {/* ================= UPCOMING VISITS ================= */}
         <div
-          className="rounded-2xl p-6 relative overflow-hidden"
+          className="lg:col-span-3 rounded-2xl overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, #2563EB, #1D4ED8, #14B8A6)",
-            boxShadow: "0 8px 32px rgba(37,99,235,0.30)",
+            background: "#FFFFFF",
+            border: "1px solid #E2E8F0",
+            boxShadow: "0 2px 20px rgba(15,23,42,0.07)",
           }}
         >
-          <div
-            className="absolute inset-0 opacity-10 pointer-events-none"
-            style={{
-              backgroundImage:
-                "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
-            }}
-          />
-          <div className="relative">
-            <p className=" text-[16px] font-bold text-white/80 uppercase tracking-wider mb-2">
+          <div className="px-5 py-3 " style={{ background: "#2563EB" }}>
+            <p className="text-[14px] font-bold text-white tracking-wide">
               Upcoming Visits
             </p>
-            <h2 className=" text-[36px] font-bold text-white leading-none">
-              {upcomingCount}
-            </h2>
-            <p className=" text-[16px] text-white/80 mt-1">
-              Appointments scheduled
-            </p>
+          </div>
+
+          <div className="flex items-center justify-between px-5 py-6 ">
+            <div>
+              <h2
+                className="text-[34px] font-extrabold leading-none"
+                style={{ color: "#0F172A" }}
+              >
+                {upcomingCount}
+              </h2>
+
+              <p className="text-[13px] mt-2" style={{ color: "#64748B" }}>
+                Appointments scheduled
+              </p>
+            </div>
+
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "#EEF2FF" }}
+            >
+              <Calendar size={24} color="#2563EB" />
+            </div>
           </div>
         </div>
 
-        {/* Token card */}
+        {/* ================= TOKEN CARD ================= */}
         {todayToken ? (
           <div
-            className="bg-white rounded-2xl p-6"
+            className="lg:col-span-3 rounded-2xl p-5"
             style={{
-              boxShadow: "0 2px 20px rgba(15,23,42,0.07)",
+              background: "#FFFFFF",
               border: "1px solid #E2E8F0",
+              boxShadow: "0 2px 20px rgba(15,23,42,0.07)",
             }}
           >
             <p
-              className=" text-[16px] font-bold uppercase tracking-widest mb-3"
+              className="text-[12px] font-bold uppercase tracking-widest mb-3"
               style={{ color: "#94A3B8" }}
             >
               Upcoming Token Visit
             </p>
-            <div className="flex items-center justify-between gap-3 flex-wrap">
+
+            <div className="flex items-center justify-between gap-3">
               <h2
-                className=" text-[32px] font-bold leading-none"
+                className="text-[30px] font-bold leading-none flex-shrink-0"
                 style={{ color: "#2563EB" }}
               >
                 #{tokenStatus?.yourToken || todayToken.token}
               </h2>
+
               <span
-                className=" text-[12px] font-bold px-3 py-1.5 rounded-full"
+                className="text-[11px] font-bold px-3 py-1.5 rounded-full text-center"
                 style={
                   tokenStatus?.yourToken === tokenStatus?.nowServing
-                    ? { color: "#166534", background: "#dcfce7" }
-                    : { color: "#2563EB", background: "#EEF2FF" }
+                    ? {
+                        color: "#166534",
+                        background: "#dcfce7",
+                      }
+                    : {
+                        color: "#2563EB",
+                        background: "#EEF2FF",
+                      }
                 }
               >
                 {tokenStatus?.nowServing !== null ? (
@@ -347,7 +373,8 @@ export default function PatientDashboard() {
                     "🟢 Now Serving: Your Token"
                   ) : (
                     <>
-                      Now Serving: #{tokenStatus?.nowServing} <br />
+                      Now Serving: #{tokenStatus?.nowServing}
+                      <br />
                       Your Token: #{tokenStatus?.yourToken}
                     </>
                   )
@@ -356,57 +383,159 @@ export default function PatientDashboard() {
                 )}
               </span>
             </div>
-            <p className=" text-[14px] mt-2" style={{ color: "#64748B" }}>
+
+            <p className="text-[13px] mt-3" style={{ color: "#64748B" }}>
               {todayToken.type} Visit
             </p>
           </div>
         ) : (
           <div
-            className="bg-white rounded-2xl p-6 flex items-center justify-center"
+            className="lg:col-span-3 rounded-2xl flex flex-col items-center justify-center py-6"
             style={{
-              boxShadow: "0 2px 20px rgba(15,23,42,0.07)",
+              background: "#FFFFFF",
               border: "1px solid #E2E8F0",
+              boxShadow: "0 2px 20px rgba(15,23,42,0.07)",
             }}
           >
-            <div className="text-center">
-              <Clock size={28} color="#94A3B8" className="mx-auto mb-2" />
-              <p
-                className=" text-[16px] font-bold uppercase tracking-widest mb-1"
-                style={{ color: "#94A3B8" }}
-              >
-                No token for today
-              </p>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
+              style={{
+                background: "#EEF2FF",
+                border: "2px solid #DBEAFE",
+              }}
+            >
+              <Clock size={27} color="#2563EB" />
             </div>
+
+            <p
+              className="text-[13px] font-bold uppercase tracking-widest"
+              style={{ color: "#0F172A" }}
+            >
+              No token for today
+            </p>
           </div>
         )}
 
-        {/* Quick actions card */}
-        <div
-          className="bg-white rounded-2xl p-6"
-          style={{
-            boxShadow: "0 2px 20px rgba(15,23,42,0.07)",
-            border: "1px solid #E2E8F0",
-          }}
-        >
+        {/* ================= QUICK ACTIONS ================= */}
+        <div className="md:col-span-2 lg:col-span-6">
           <p
-            className=" text-[16px] font-bold uppercase tracking-widest mb-4"
-            style={{ color: "#94A3B8" }}
+            className="text-[15px] font-bold mb-3"
+            style={{ color: "#0F172A" }}
           >
             Quick Actions
           </p>
-          <div className="grid grid-cols-2 gap-3">
-            <Action
-              icon={<Plus size={20} />}
-              label="Book Now"
+
+          <div className="flex flex-wrap gap-4">
+            {/* Book Now */}
+            <button
               onClick={() => navigate("/client/book-appointment")}
-              color="#2563EB"
-            />
-            <Action
-              icon={<FaFlask size={20} />}
-              label="Lab Test Book"
+              className="rounded-2xl w-50 flex flex-col items-center justify-center py-6 gap-3 transition-all duration-200 cursor-pointer"
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                boxShadow: "0 2px 20px rgba(15,23,42,0.07)",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.boxShadow =
+                  "0 8px 28px rgba(37,99,235,0.15)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.boxShadow =
+                  "0 2px 20px rgba(15,23,42,0.07)")
+              }
+            >
+              <div className="relative">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center"
+                  style={{ background: "#EEF2FF" }}
+                >
+                  <Stethoscope size={22} color="#2563EB" />
+                </div>
+
+                <div
+                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{
+                    background: "#2563EB",
+                    border: "2px solid #FFFFFF",
+                  }}
+                >
+                  <Plus size={10} color="#FFFFFF" strokeWidth={3} />
+                </div>
+              </div>
+
+              <span
+                className="text-[14px] font-bold text-center"
+                style={{ color: "#0F172A" }}
+              >
+                Book Now
+              </span>
+            </button>
+
+            {/* Lab Test */}
+            <button
               onClick={() => navigate("/client/lab-tests")}
-              color="#14B8A6"
-            />
+              className="rounded-2xl w-50 flex flex-col items-center justify-center py-6 gap-3 transition-all duration-200 cursor-pointer"
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                boxShadow: "0 2px 20px rgba(15,23,42,0.07)",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.boxShadow =
+                  "0 8px 28px rgba(20,184,166,0.15)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.boxShadow =
+                  "0 2px 20px rgba(15,23,42,0.07)")
+              }
+            >
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: "#F0FDFA" }}
+              >
+                <FlaskConical size={22} color="#14B8A6" />
+              </div>
+
+              <span
+                className="text-[14px] font-bold text-center"
+                style={{ color: "#0F172A" }}
+              >
+                Lab Test Book
+              </span>
+            </button>
+
+            {/* Apply Certificate */}
+            <button
+              onClick={() => navigate("/client/certificatedoctors")}
+              className="rounded-2xl w-50 flex flex-col items-center justify-center py-6 gap-3 transition-all duration-200 cursor-pointer"
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                boxShadow: "0 2px 20px rgba(15,23,42,0.07)",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.boxShadow =
+                  "0 8px 28px rgba(37,99,235,0.15)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.boxShadow =
+                  "0 2px 20px rgba(15,23,42,0.07)")
+              }
+            >
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: "#EEF2FF" }}
+              >
+                <FileCheck2 size={22} color="#2563EB" />
+              </div>
+
+              <span
+                className="text-[14px] font-bold text-center"
+                style={{ color: "#0F172A" }}
+              >
+                Apply Certificate
+              </span>
+            </button>
           </div>
         </div>
       </div>
@@ -980,7 +1109,6 @@ export default function PatientDashboard() {
 }
 
 /* ── Small helper components ── */
-
 function InfoField({ label, value, icon, circle }) {
   return (
     <div>

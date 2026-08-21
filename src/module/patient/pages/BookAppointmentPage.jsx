@@ -114,6 +114,10 @@ const [paymentMethod, setPaymentMethod] = useState("CASH");
   }, [selectedDateType]);
 
   const handleConfirm = async () => {
+      if (!doctor?.is_available) {
+    notify.error("Doctor is currently unavailable");
+    return;
+  }
     if (booking) return;
     if (!doctor) return;
     if (patientType === "OTHER" && !selectedFamilyId) {

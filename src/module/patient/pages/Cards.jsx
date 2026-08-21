@@ -51,10 +51,30 @@ export default function Cards() {
     );
   }
 
-return (
+  const getDoctorStatus = (doctor) => {
+    if (!doctor.available_today) {
+      return {
+        text: "Not Available",
+        color: "bg-orange-100 text-orange-700 text-center py-1 font-bold",
+      };
+    }
+
+    if (!doctor.is_available) {
+      return {
+        text: "Not Available",
+        color: "bg-red-100 text-red-700 text-center py-1 font-semibold",
+      };
+    }
+
+    return {
+      text: "Available",
+      color: "bg-green-100 text-green-700 text-center py-1 font-semibold",
+    };
+  };
+
+  return (
     <div className="min-h-screen bg-[#f0f4f8] px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-4xl mx-auto">
-
         {/* Header */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#0c1e3a]">
@@ -70,105 +90,114 @@ return (
         {/* Doctor List */}
         {doctors.length > 0 ? (
           <div className="flex flex-col gap-3">
-            {doctors.map((doctor) => (
-              <div
-                key={doctor.doctorId}
-                className="bg-white rounded-2xl border border-black/5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-250 overflow-hidden group"
-              >
-                {/* Accent bar */}
-                <div className="h-0.5 w-0 group-hover:w-full transition-all duration-300 bg-gradient-to-r from-[#0086C3] to-[#2ecc71]" />
+            {doctors.map((doctor) => {
+              const status = getDoctorStatus(doctor);
+              return (
+                <div
+                  key={doctor.doctorId}
+                  className="bg-white rounded-2xl border border-black/5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-250 overflow-hidden group"
+                >
+                  {/* Accent bar */}
+                  <div className="h-0.5 w-0 group-hover:w-full transition-all duration-300 bg-gradient-to-r from-[#0086C3] to-[#2ecc71]" />
 
-                <div className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-
-                  {/* Avatar + View Profile */}
-                  <div className="flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2 flex-shrink-0">
-                    <div className="relative">
-                      <img
-                        src={getImageUrl(doctor.profile_image)}
-                        alt={doctor.doctorName}
-                        className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-2xl object-cover border-2 border-blue-100"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src =
-                            "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-                        }}
-                      />
-                      <span className="absolute bottom-1 right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white" />
-                    </div>
-                    <button
-                      onClick={() =>
-                        navigate(`/client/doctor-profile/${doctor.doctorId}`, {
-                          state: { doctor },
-                        })
-                      }
-                      className="text-[12px] font-bold px-3 py-1 rounded-full text-[#0086C3] border border-blue-200 hover:border-[#0086C3] hover:bg-blue-50 transition-all duration-200 whitespace-nowrap"
-                    >
-                      View Profile
-                    </button>
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                      <h2 className="text-sm sm:text-lg font-bold text-[#0c1e3a] truncate max-w-[180px] sm:max-w-xs">
-                        {doctor.doctorName}
-                      </h2>
-                      {doctor.rating && (
-                        <span className="text-[12px] font-semibold px-2 py-0.5 rounded-full text-amber-700 bg-amber-100 flex-shrink-0">
-                          ⭐ {doctor.rating}
-                        </span>
-                      )}
+                  <div className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                    {/* Avatar + View Profile */}
+                    <div className="flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2 flex-shrink-0">
+                      <div className="relative">
+                        <img
+                          src={getImageUrl(doctor.profile_image)}
+                          alt={doctor.doctorName}
+                          className="w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-2xl object-cover border-2 border-blue-100"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src =
+                              "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+                          }}
+                        />
+                        <div className="flex flex-col gap-2 mt-2">
+                          <span
+                            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${status.color}`}
+                          >
+                            {status.text}
+                          </span>
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/client/doctor-profile/${doctor.doctorId}`,
+                                {
+                                  state: { doctor },
+                                },
+                              )
+                            }
+                            className="text-[12px] font-bold px-3 py-1 rounded-full text-[#0086C3] border border-blue-200 hover:border-[#0086C3] hover:bg-blue-50 transition-all duration-200 whitespace-nowrap"
+                          >
+                            View Profile
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
-                    <p className="text-[15px] font-semibold text-[#0086C3] mb-2">
-                      {doctor.specialization}
-                    </p>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <h2 className="text-sm sm:text-lg font-bold text-[#0c1e3a] truncate max-w-[180px] sm:max-w-xs">
+                          {doctor.doctorName}
+                        </h2>
+                        {doctor.rating && (
+                          <span className="text-[12px] font-semibold px-2 py-0.5 rounded-full text-amber-700 bg-amber-100 flex-shrink-0">
+                            ⭐ {doctor.rating}
+                          </span>
+                        )}
+                      </div>
 
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {doctor.clinicName && (
-                        <span className="text-[12px] font-medium px-2.5 py-0.5 rounded-full text-slate-500 bg-[#f0f4f8]">
-                          🏥 {doctor.clinicName}
-                        </span>
-                      )}
-                      <span className="text-[12px] font-medium px-2.5 py-0.5 rounded-full text-slate-500 bg-[#f0f4f8]">
-                        📍 {doctor.city}
-                      </span>
-                      {doctor.experience && (
-                        <span className="text-[12px] font-medium px-2.5 py-0.5 rounded-full text-slate-500 bg-[#f0f4f8]">
-                          🩺 {doctor.experience} yrs
-                        </span>
-                      )}
-                    </div>
-
-                    {doctor.consultationFee && (
-                      <p className="text-sm text-slate-600">
-                        Consultation Fee —{" "}
-                        <strong className="text-[#0c1e3a] font-bold">
-                          ₹{doctor.consultationFee}
-                        </strong>
+                      <p className="text-[15px] font-semibold text-[#0086C3] mb-2">
+                        {doctor.specialization}
                       </p>
-                    )}
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex sm:flex-col gap-2 flex-shrink-0">
-                    <button
-                      onClick={() =>
-                        navigate(
-                          `/client/bookappointmentpage/${doctor.doctorId}`,
-                          { state: { doctor } }
-                        )
-                      }
-                      className="flex-1 sm:flex-none text-md sm:text-[15px] font-bold text-white px-4 sm:px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0086C3] to-[#00b4d8] shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap text-center"
-                    >
-                      📅 Book Appointment
-                    </button>
-                   
-                  </div>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {doctor.clinicName && (
+                          <span className="text-[12px] font-medium px-2.5 py-0.5 rounded-full text-slate-500 bg-[#f0f4f8]">
+                            🏥 {doctor.clinicName}
+                          </span>
+                        )}
+                        <span className="text-[12px] font-medium px-2.5 py-0.5 rounded-full text-slate-500 bg-[#f0f4f8]">
+                          📍 {doctor.city}
+                        </span>
+                        {doctor.experience && (
+                          <span className="text-[12px] font-medium px-2.5 py-0.5 rounded-full text-slate-500 bg-[#f0f4f8]">
+                            🩺 {doctor.experience} yrs
+                          </span>
+                        )}
+                      </div>
 
+                      {doctor.consultationFee && (
+                        <p className="text-sm text-slate-600">
+                          Consultation Fee —{" "}
+                          <strong className="text-[#0c1e3a] font-bold">
+                            ₹{doctor.consultationFee}
+                          </strong>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex sm:flex-col gap-2 flex-shrink-0">
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/client/bookappointmentpage/${doctor.doctorId}`,
+                            { state: { doctor } },
+                          )
+                        }
+                        className="flex-1 sm:flex-none text-md sm:text-[15px] font-bold text-white px-4 sm:px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0086C3] to-[#00b4d8] shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap text-center"
+                      >
+                        📅 Book Appointment
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-20">
@@ -181,7 +210,6 @@ return (
             </p>
           </div>
         )}
-
       </div>
     </div>
   );

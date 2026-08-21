@@ -13,13 +13,29 @@ import {
   FaFlask,
   FaBoxOpen,
   FaClipboardList,
+  FaCog,
+  FaLock,
+  FaSignOutAlt,
+  FaTrashAlt,
+  FaChevronDown,
+  FaChevronUp,
+  FaUserNurse,
 } from "react-icons/fa";
 import { FiUsers } from "react-icons/fi";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
+import LogoutModal from "../utils/LogoutModal";
+import DeleteAccountModal from "../utils/DeleteAccountModal";
+import { deleteAccount } from "../services/authService";
+import { notify } from "../utils/notify";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [tooltip, setTooltip] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   let loggedInUser = null;
   try {
@@ -27,6 +43,53 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   } catch {
     loggedInUser = null;
   }
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Firebase Logout Error:", err);
+    }
+
+    localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("profileImage");
+    localStorage.removeItem("token");
+
+    sessionStorage.removeItem("loggedInUser");
+    sessionStorage.removeItem("profileImage");
+    sessionStorage.removeItem("token");
+
+    setIsLogoutModalOpen(false);
+
+    window.dispatchEvent(new Event("userLogout"));
+
+    navigate("/");
+  };
+
+  const handleDeleteAccount = async (password) => {
+    try {
+      const res = await deleteAccount({ password });
+
+      if (res.data.success) {
+        try {
+          await signOut(auth);
+        } catch (err) {
+          console.error("Firebase Logout Error:", err);
+        }
+
+        localStorage.clear();
+        sessionStorage.clear();
+
+        setIsDeleteModalOpen(false);
+
+        window.dispatchEvent(new Event("userLogout"));
+
+        navigate("/", { replace: true });
+      }
+    } catch (err) {
+      notify.error(err.response?.data?.message || "Something went wrong");
+    }
+  };
 
   const role = loggedInUser?.role;
 
@@ -55,6 +118,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       label: "My Lab Bookings",
       icon: <FaFlask />,
     },
+    {
+      key: "home-service-booking",
+      label: "Book Nurse",
+      icon: <FaBoxOpen />,
+    },
+    {
+  key: "homecarehistory",
+  label: "Home Care History",
+  icon: <FaUserNurse />,
+},
     { key: "mycertificate", label: "My Certificates", icon: <FaFileMedical /> },
   ];
 
@@ -90,11 +163,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   const getRoute = (key) => {
     if (role === "DOCTOR") {
-      if (key === "dashboard") return "/doctordashboard";
+      if (key === "dashboard") return "/doctordashboard/dashboard";
       return `/doctordashboard/${key}`;
     }
     if (role === "ADMIN") {
-      if (key === "dashboard") return "/admin";
+      if (key === "dashboard") return "/admin/dashboard";
       return `/admin/${key}`;
     }
     if (key === "dashboard") return "/client/dashboard";
@@ -190,8 +263,106 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               </div>
             );
           })}
+
+          {role === "PATIENT" && (
+            <div className="mt-2">
+              {/* Settings */}
+              <div
+                onClick={() => {
+                  if (!isOpen) {
+                    setIsOpen(true);
+                    setSettingsOpen(true);
+                  } else {
+                    setSettingsOpen((prev) => !prev);
+                  }
+                }}
+                className={`
+        flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer
+        transition-all duration-200
+        text-blue-100 hover:text-white hover:bg-white/15
+        ${!isOpen ? "justify-center" : ""}
+      `}
+              >
+                <div className="text-2xl flex-shrink-0">
+                  <FaCog />
+                </div>
+
+                {isOpen && (
+                  <>
+                    <span className="font-medium text-sm flex-1">Settings</span>
+
+                    {settingsOpen ? (
+                      <FaChevronUp className="text-sm" />
+                    ) : (
+                      <FaChevronDown className="text-sm" />
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Settings submenu */}
+              {isOpen && settingsOpen && (
+                <div className="ml-5 mt-1 space-y-1 border-l border-white/30 pl-3">
+                  {/* Change Password */}
+                  <div
+                    onClick={() => {
+                      navigate("/client/changepassword");
+
+                      if (window.innerWidth < 768) {
+                        setIsOpen(false);
+                      }
+                    }}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg
+                     cursor-pointer text-blue-100 hover:text-white
+                     hover:bg-white/15 transition"
+                  >
+                    <FaLock className="text-sm" />
+
+                    <span className="text-sm">Change Password</span>
+                  </div>
+
+                  {/* Logout */}
+                  <div
+                    onClick={() => setIsLogoutModalOpen(true)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg
+                     cursor-pointer text-blue-100 hover:text-white
+                     hover:bg-white/15 transition"
+                  >
+                    <FaSignOutAlt className="text-sm" />
+
+                    <span className="text-sm">Logout</span>
+                  </div>
+
+                  {/* Delete Account */}
+                  <div
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg
+                     cursor-pointer text-white hover:text-white
+                     hover:bg-white/15 transition"
+                  >
+                    <FaTrashAlt className="text-sm" />
+
+                    <span className="text-sm">Delete Account</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </nav>
+
+        
       </aside>
+       <LogoutModal
+  isOpen={isLogoutModalOpen}
+  onClose={() => setIsLogoutModalOpen(false)}
+  onConfirm={handleLogout}
+/>
+
+<DeleteAccountModal
+  isOpen={isDeleteModalOpen}
+  onClose={() => setIsDeleteModalOpen(false)}
+  onConfirm={handleDeleteAccount}
+/>
     </>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { validateLoginForm } from "../../controllers/FormValidation";
@@ -23,32 +22,31 @@ const ClientLoginPage = () => {
   const params = new URLSearchParams(location.search);
   const redirect = params.get("redirect");
 
-
   useEffect(() => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
 
-  const raw =
-    localStorage.getItem("loggedInUser") ||
-    sessionStorage.getItem("loggedInUser");
+    const raw =
+      localStorage.getItem("loggedInUser") ||
+      sessionStorage.getItem("loggedInUser");
 
-  if (token && raw) {
-    try {
-      const user = JSON.parse(raw); 
-      const role = user.role;       
+    if (token && raw) {
+      try {
+        const user = JSON.parse(raw);
+        const role = user.role;
 
-      if (redirect) {
-        navigate(redirect);
-      } else {
-        if (role === "ADMIN") navigate("/admin/dashboard");
-        else if (role === "PATIENT") navigate("/client/dashboard");
-        else notify.error("Unauthorized role");
-      }
-    } catch {}
-  }
+        if (redirect) {
+          navigate(redirect);
+        } else {
+          if (role === "ADMIN") navigate("/admin/dashboard");
+          else if (role === "PATIENT") navigate("/client/dashboard");
+          else notify.error("Unauthorized role");
+        }
+      } catch {}
+    }
 
-  setChecking(false);
-}, []);
+    setChecking(false);
+  }, []);
 
   if (checking) return null;
 
@@ -67,7 +65,11 @@ const ClientLoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await patientLoginApi({ identifier, password, portal: "USER", });
+      const res = await patientLoginApi({
+        identifier,
+        password,
+        portal: "USER",
+      });
       const token = res.data.data.token;
       const decoded = jwtDecode(token);
       const role = decoded.role?.toUpperCase();
@@ -94,60 +96,48 @@ const ClientLoginPage = () => {
   };
 
   const handleGoogleLogin = async () => {
-  try {
+    try {
+      const result = await signInWithPopup(auth, provider);
 
-    const result = await signInWithPopup(auth, provider);
+      const firebaseToken = await result.user.getIdToken();
 
-    const firebaseToken = await result.user.getIdToken();
+      const res = await api.post("/auth/google-login", {
+        token: firebaseToken,
+        portal: "USER",
+      });
 
-    const res = await api.post("/auth/google-login", {
-      token: firebaseToken,
-      portal: "USER",
-    });
+      const token = res.data.data.token;
 
-    const token = res.data.data.token;
+      const decoded = jwtDecode(token);
 
-    const decoded = jwtDecode(token);
+      const role = decoded.role?.toUpperCase();
 
-    const role = decoded.role?.toUpperCase();
+      const loggedInUser = {
+        role,
+        identifier: decoded.email,
+      };
 
-    const loggedInUser = {
-      role,
-      identifier: decoded.email,
-    };
+      if (rememberMe) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
+      } else {
+        sessionStorage.setItem("token", token);
+        sessionStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
+      }
 
-    if (rememberMe) {
-      localStorage.setItem("token", token);
-      localStorage.setItem(
-        "loggedInUser",
-        JSON.stringify(loggedInUser)
-      );
-    } else {
-      sessionStorage.setItem("token", token);
-      sessionStorage.setItem(
-        "loggedInUser",
-        JSON.stringify(loggedInUser)
-      );
+      notify.success("Login Successful");
+
+      if (redirect) {
+        navigate(redirect);
+      } else {
+        navigate("/client/dashboard");
+      }
+    } catch (err) {
+      console.log(err);
+
+      notify.error(err.response?.data?.message || "Google Login Failed");
     }
-
-    notify.success("Login Successful");
-
-    if (redirect) {
-      navigate(redirect);
-    } else {
-      navigate("/client/dashboard");
-    }
-
-  } catch (err) {
-
-    console.log(err);
-
-    notify.error(
-      err.response?.data?.message ||
-      "Google Login Failed"
-    );
-  }
-};
+  };
 
   const inputCls = (field) =>
     `w-full px-4 py-2.5 rounded-lg text-md text-gray-800 outline-none border transition-colors duration-150 ${
@@ -262,7 +252,15 @@ const ClientLoginPage = () => {
             Don't have an account?{" "}
             <button
               type="button"
-              onClick={() => navigate("/clientregisterpage")}
+              onClick={() => {
+                if (redirect) {
+                  navigate(
+                    `/clientregisterpage?redirect=${encodeURIComponent(redirect)}`,
+                  );
+                } else {
+                  navigate("/clientregisterpage");
+                }
+              }}
               className="text-[#0086C3] font-semibold hover:underline cursor-pointer"
             >
               Register here

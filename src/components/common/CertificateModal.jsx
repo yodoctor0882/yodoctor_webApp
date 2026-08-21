@@ -101,7 +101,7 @@ const CertificateModal = ({ cert, onClose, onDownload, role = "patient" }) => {
           {/* Disclaimer */}
           <div className="bg-gray-50 rounded-lg px-3 py-2.5 text-xs text-gray-500 mb-4">
             <span className="font-semibold text-gray-600">Disclaimer:</span>{" "}
-            This certificate is digitally signed and tamper-proof. Verify at{" "}
+            This certificate is digitally signed and securely verified. Verify at{" "}
             <span className="text-teal-600 font-medium">
               yodoctor.in/verify
             </span>

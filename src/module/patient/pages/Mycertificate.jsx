@@ -2,15 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import CertificateModal from "../../../components/common/CertificateModal";
+import { notify } from "../../../utils/notify";
 import {
   getMyRequests,
   getRequestById,
   downloadCertificate,
 } from "../../../services/certificateService";
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Config & Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 const statusConfig = {
   Pending: {
     bg: "bg-amber-50",
@@ -77,9 +76,7 @@ function StatusBadge({ status }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // CertCard
-// ─────────────────────────────────────────────────────────────────────────────
 function CertCard({ rawCert, onView, onDownload, onTrack }) {
   const [hovered, setHovered] = useState(false);
 
@@ -192,9 +189,7 @@ function CertCard({ rawCert, onView, onDownload, onTrack }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // WalletTab
-// ─────────────────────────────────────────────────────────────────────────────
 function WalletTab({ certificates, showSuccess, onView, onDownload, onTrack }) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -495,9 +490,7 @@ function TrackTab({ requestId }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Root Component — MyCertificate
-// ─────────────────────────────────────────────────────────────────────────────
 const MyCertificate = () => {
   const [activeTab, setActiveTab] = useState("wallet");
   const [showSuccess, setShowSuccess] = useState(false);
@@ -551,7 +544,7 @@ const MyCertificate = () => {
       setModalCert(null);
     } catch (error) {
       console.error("Download error:", error);
-      alert("Failed to open certificate PDF");
+      notify.info("Failed to open certificate PDF");
     }
   };
 
@@ -626,7 +619,7 @@ const MyCertificate = () => {
               e.currentTarget.style.background = "#2563EB";
               e.currentTarget.style.transform = "translateY(0)";
             }}
-            onClick={() => navigate("/client/apply-certificate")}
+            onClick={() => navigate("/client/certificatedoctors")}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <circle cx="7.5" cy="7.5" r="6.5" stroke="white" strokeWidth="1.3" />

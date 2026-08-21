@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import lab_test_yo_doctorImg from "../assets/images/lab-test_yo_doctor.webp";
-import trackerImg            from "../assets/images/tracker.webp";
-import labtestImg            from "../assets/images/labtest.webp";
-import medicineImg           from "../assets/images/medicine-new.webp";
-import careProgramImg        from "../assets/images/care-program.webp";
-import phoneImg              from "../assets/images/phone-1.webp";
-import homeDiagnosisImg      from "../assets/images/home-diagnosis.webp";
-import teamImg               from "../assets/images/yo_doctor_team.webp";
+import trackerImg from "../assets/images/tracker.webp";
+import labtestImg from "../assets/images/labtest.webp";
+import medicineImg from "../assets/images/medicine-new.webp";
+import careProgramImg from "../assets/images/care-program.webp";
+import phoneImg from "../assets/images/phone-1.webp";
+import homeDiagnosisImg from "../assets/images/home-diagnosis.webp";
+import teamImg from "../assets/images/yo_doctor_team.webp";
 
 import SEO from "../components/SEO";
 
@@ -30,15 +30,19 @@ const Icon = ({ d, size = 20, color = "currentColor", sw = 1.8 }) => (
 );
 
 const ICONS = {
-  shield: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
-  heart:  "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
-  users:  "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
-  globe:  "M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-  check:  "M5 13l4 4L19 7",
-  arrow:  "M17 8l4 4m0 0l-4 4m4-4H3",
-  star:   "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
-  zap:    "M13 10V3L4 14h7v7l9-11h-7z",
-  team:   "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
+  shield:
+    "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+  heart:
+    "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
+  users:
+    "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+  globe:
+    "M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+  check: "M5 13l4 4L19 7",
+  arrow: "M17 8l4 4m0 0l-4 4m4-4H3",
+  star: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
+  zap: "M13 10V3L4 14h7v7l9-11h-7z",
+  team: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
 };
 
 const FALLBACK_STATS = { doctors: 100, patients: 100, labs: 10, clinics: 100 };
@@ -49,10 +53,10 @@ const getStatsFromCache = () => {
     if (!raw) return FALLBACK_STATS;
     const parsed = JSON.parse(raw);
     return {
-      doctors:  parsed.doctors  ?? FALLBACK_STATS.doctors,
+      doctors: parsed.doctors ?? FALLBACK_STATS.doctors,
       // labs:     parsed.labs     ?? FALLBACK_STATS.labs,
       patients: parsed.patients ?? FALLBACK_STATS.patients,
-      clinics:  parsed.doctors  ?? FALLBACK_STATS.doctors,
+      clinics: parsed.doctors ?? FALLBACK_STATS.doctors,
     };
   } catch {
     return FALLBACK_STATS;
@@ -66,8 +70,10 @@ const FadeIn = ({ children, delay = 0, direction = "up" }) => {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true); },
-      { threshold: 0.1 }
+      ([e]) => {
+        if (e.isIntersecting) setVisible(true);
+      },
+      { threshold: 0.1 },
     );
     if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
@@ -75,11 +81,17 @@ const FadeIn = ({ children, delay = 0, direction = "up" }) => {
   const startY = direction === "up" ? 32 : 0;
   const startX = direction === "left" ? -32 : direction === "right" ? 32 : 0;
   return (
-    <div ref={ref} className="w-full" style={{
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translate(0,0)" : `translate(${startX}px,${startY}px)`,
-      transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
-    }}>
+    <div
+      ref={ref}
+      className="w-full"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible
+          ? "translate(0,0)"
+          : `translate(${startX}px,${startY}px)`,
+        transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
+      }}
+    >
       {children}
     </div>
   );
@@ -88,15 +100,19 @@ const FadeIn = ({ children, delay = 0, direction = "up" }) => {
 const SectionLabel = ({ text }) => (
   <div className="flex items-center gap-2 mb-3">
     <div className="w-6 h-0.5 bg-[#0072BC] rounded" />
-    <span className="text-xs font-extrabold uppercase tracking-widest text-[#0072BC]">{text}</span>
+    <span className="text-xs font-extrabold uppercase tracking-widest text-[#0072BC]">
+      {text}
+    </span>
   </div>
 );
 
 /* ─── STAT CARD ─── */
 const StatCard = ({ stat }) => (
-  <div className="flex flex-col items-center text-center rounded-2xl p-4 sm:p-5 md:p-7
+  <div
+    className="flex flex-col items-center text-center rounded-2xl p-4 sm:p-5 md:p-7
                   bg-white/5 border border-white/10
-                  transition-all duration-300 hover:-translate-y-1 cursor-default">
+                  transition-all duration-300 hover:-translate-y-1 cursor-default"
+  >
     <div
       className="flex items-center justify-center rounded-xl mb-3 sm:mb-4 md:mb-5
                  w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14"
@@ -133,7 +149,9 @@ const AppFeatureCard = ({ item }) => (
         loading="lazy"
       />
     </div>
-    <span className="text-md font-semibold text-gray-700 leading-snug">{item.text}</span>
+    <span className="text-md font-semibold text-gray-700 leading-snug">
+      {item.text}
+    </span>
   </div>
 );
 
@@ -146,16 +164,40 @@ const About = () => {
   const cachedStats = getStatsFromCache();
 
   const stats = [
-    { value: cachedStats.doctors,  suffix: "+", label: t.doctors,  icon: ICONS.users,  color: "#0072BC" },
-    { value: cachedStats.patients, suffix: "+", label: t.patients, icon: ICONS.heart,  color: "#0891b2" },
-    { value: cachedStats.labs,     suffix: "+", label: t.labs,     icon: ICONS.shield, color: "#7c3aed" },
-    { value: cachedStats.clinics,  suffix: "+", label: t.clinics,  icon: ICONS.globe,  color: "#059669" },
+    {
+      value: cachedStats.doctors,
+      suffix: "+",
+      label: t.doctors,
+      icon: ICONS.users,
+      color: "#0072BC",
+    },
+    {
+      value: cachedStats.patients,
+      suffix: "+",
+      label: t.patients,
+      icon: ICONS.heart,
+      color: "#0891b2",
+    },
+    {
+      value: cachedStats.labs,
+      suffix: "+",
+      label: t.labs,
+      icon: ICONS.shield,
+      color: "#7c3aed",
+    },
+    {
+      value: cachedStats.clinics,
+      suffix: "+",
+      label: t.clinics,
+      icon: ICONS.globe,
+      color: "#059669",
+    },
   ];
 
   const appFeatures = [
-    { img: trackerImg,     text: t.f1, color: "#0072BC" },
-    { img: labtestImg,     text: t.f3, color: "#0891b2" },
-    { img: medicineImg,    text: t.f4, color: "#7c3aed" },
+    { img: trackerImg, text: t.f1, color: "#0072BC" },
+    { img: labtestImg, text: t.f3, color: "#0891b2" },
+    { img: medicineImg, text: t.f4, color: "#7c3aed" },
     { img: careProgramImg, text: t.f5, color: "#059669" },
   ];
 
@@ -179,7 +221,12 @@ const About = () => {
         {/* dot pattern */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.07] pointer-events-none">
           <defs>
-            <pattern id="adots" width="32" height="32" patternUnits="userSpaceOnUse">
+            <pattern
+              id="adots"
+              width="32"
+              height="32"
+              patternUnits="userSpaceOnUse"
+            >
               <circle cx="1.5" cy="1.5" r="1.5" fill="white" />
             </pattern>
           </defs>
@@ -187,8 +234,12 @@ const About = () => {
         </svg>
         <div className="relative z-10 text-center mt-8 sm:mt-10 max-w-2xl mx-auto">
           <div className="flex items-center justify-center gap-1 mb-3">
-            <span className="text-base sm:text-lg font-extrabold uppercase tracking-widest text-[#0072BC]">Yo</span>
-            <span className="text-base sm:text-lg font-extrabold uppercase tracking-widest text-[#16a34a]">Doctor</span>
+            <span className="text-base sm:text-lg font-extrabold uppercase tracking-widest text-[#0072BC]">
+              Yo
+            </span>
+            <span className="text-base sm:text-lg font-extrabold uppercase tracking-widest text-[#16a34a]">
+              Doctor
+            </span>
           </div>
           <h1 className="font-black text-white mb-4 text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight tracking-tight">
             About <span className="text-[#0072BC]">Us</span>
@@ -199,7 +250,8 @@ const About = () => {
             <div className="w-10 sm:w-14 h-0.5 bg-[#0072BC] rounded" />
           </div>
           <p className="text-lg leading-relaxed text-blue-200/70 max-w-xs sm:max-w-xl mx-auto px-2 sm:px-0">
-            India's trusted digital healthcare platform — connecting patients with verified doctors, labs, and home care services.
+            India's trusted digital healthcare platform — connecting patients
+            with verified doctors, labs, and home care services.
           </p>
         </div>
       </div>
@@ -208,7 +260,6 @@ const About = () => {
       <section className="bg-[#f4f7fb] py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-8 md:px-12 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
-
             {/* Image */}
             <FadeIn direction="left">
               <div className="relative w-full mt-4 md:mt-0">
@@ -233,17 +284,28 @@ const About = () => {
                   {t.about_desc}
                 </p>
                 {checkItems.map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 sm:gap-3 mb-3">
-                    <span className="flex items-center justify-center rounded-full flex-shrink-0
-                                     w-6 h-6 sm:w-7 sm:h-7 bg-[#0072BC]/10">
-                      <Icon d={ICONS.check} size={12} color="#0072BC" sw={2.5} />
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 sm:gap-3 mb-3"
+                  >
+                    <span
+                      className="flex items-center justify-center rounded-full flex-shrink-0
+                                     w-6 h-6 sm:w-7 sm:h-7 bg-[#0072BC]/10"
+                    >
+                      <Icon
+                        d={ICONS.check}
+                        size={12}
+                        color="#0072BC"
+                        sw={2.5}
+                      />
                     </span>
-                    <span className="text-xs sm:text-sm text-gray-700 font-semibold">{item}</span>
+                    <span className="text-xs sm:text-sm text-gray-700 font-semibold">
+                      {item}
+                    </span>
                   </div>
                 ))}
               </div>
             </FadeIn>
-
           </div>
         </div>
       </section>
@@ -252,7 +314,12 @@ const About = () => {
       <section className="relative overflow-hidden bg-[#050f24] py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-8 md:px-12">
         <svg className="absolute inset-0 w-full h-full opacity-[0.05] pointer-events-none">
           <defs>
-            <pattern id="sdots" width="32" height="32" patternUnits="userSpaceOnUse">
+            <pattern
+              id="sdots"
+              width="32"
+              height="32"
+              patternUnits="userSpaceOnUse"
+            >
               <circle cx="1.5" cy="1.5" r="1.5" fill="white" />
             </pattern>
           </defs>
@@ -265,7 +332,9 @@ const About = () => {
               <span className="font-extrabold uppercase tracking-[0.3em] text-yellow-400 inline-block mb-2 sm:mb-3">
                 Our Impact
               </span>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">{t.stats_title}</h2>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
+                {t.stats_title}
+              </h2>
             </div>
           </FadeIn>
 
@@ -283,7 +352,6 @@ const About = () => {
       <section className="bg-[#f4f7fb] py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-8 md:px-12 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
-
             {/* Text + feature cards */}
             <FadeIn direction="left">
               <div>
@@ -316,7 +384,6 @@ const About = () => {
                 />
               </div>
             </FadeIn>
-
           </div>
         </div>
       </section>
@@ -325,7 +392,6 @@ const About = () => {
       <section className="bg-white py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-8 md:px-12 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
-
             <FadeIn direction="left">
               <div>
                 <SectionLabel text="Technology" />
@@ -350,18 +416,23 @@ const About = () => {
                   loading="lazy"
                   className="w-full h-auto rounded-2xl shadow-lg block"
                 />
-                <div className="absolute bottom-[-16px] sm:bottom-[-20px] left-3 sm:left-5
+                <div
+                  className="absolute bottom-[-16px] sm:bottom-[-20px] left-3 sm:left-5
                                 flex items-center gap-2 sm:gap-3
-                                bg-[#050f24] px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl">
+                                bg-[#050f24] px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl"
+                >
                   <Icon d={ICONS.zap} size={16} color="#f5c518" sw={2} />
                   <div>
-                    <p className="text-white text-xs font-extrabold leading-none">AI-Powered</p>
-                    <p className="text-xs mt-0.5 text-blue-200/80">Smart Diagnostics</p>
+                    <p className="text-white text-xs font-extrabold leading-none">
+                      AI-Powered
+                    </p>
+                    <p className="text-xs mt-0.5 text-blue-200/80">
+                      Smart Diagnostics
+                    </p>
                   </div>
                 </div>
               </div>
             </FadeIn>
-
           </div>
         </div>
       </section>
@@ -370,7 +441,6 @@ const About = () => {
       <section className="bg-[#f4f7fb] py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-8 md:px-12 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
-
             {/* Image */}
             <FadeIn direction="left">
               <div className="relative w-full">
@@ -378,7 +448,7 @@ const About = () => {
                   src={teamImg}
                   alt="Yo Doctor Team"
                   loading="lazy"
-                  className="w-full h-auto rounded-2xl shadow-lg block"
+                  className="w-full h-[400px] object-cover rounded-2xl shadow-lg block"
                 />
               </div>
             </FadeIn>
@@ -404,7 +474,6 @@ const About = () => {
                 </Link>
               </div>
             </FadeIn>
-
           </div>
         </div>
       </section>

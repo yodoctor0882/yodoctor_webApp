@@ -106,7 +106,7 @@ const DoctorLoginPage = () => {
               );
             }
 
-            navigate("/doctordashboard");
+            navigate("/doctordashboard/dashboard");
           } else {
             loggedInUser.paymentStatus = "inactive";
 

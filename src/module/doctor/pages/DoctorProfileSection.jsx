@@ -148,7 +148,7 @@ const DoctorProfileSection = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const navigate = useNavigate();
-const cleanImage = profileImage?.split("?")[0];
+  const cleanImage = profileImage?.split("?")[0];
 
   const availableDays = Array.isArray(profile.availableDays)
     ? profile.availableDays
@@ -227,7 +227,6 @@ const cleanImage = profileImage?.split("?")[0];
       />
 
       <div className="relative z-10 max-w-[1100px] mx-auto">
-
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -235,9 +234,7 @@ const cleanImage = profileImage?.split("?")[0];
           }}
         >
           <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-            <aside
-              className="w-full lg:w-[280px] flex-shrink-0 bg-white border border-black/[0.08] rounded-[20px] p-6 flex flex-col items-center lg:sticky lg:top-6 h-fit"
-            >
+            <aside className="w-full lg:w-[280px] flex-shrink-0 bg-white border border-black/[0.08] rounded-[20px] p-6 flex flex-col items-center lg:sticky lg:top-6 h-fit">
               <div className="relative mb-[18px]">
                 <div
                   className="w-[116px] h-[116px] rounded-full p-[3px] bg-gradient-to-br from-[#0e7490] to-[#67e8f9]"
@@ -333,7 +330,7 @@ const cleanImage = profileImage?.split("?")[0];
 
             <div className="flex-1 min-w-0">
               <div
-               className="bg-white border border-black/[0.08] rounded-[14px] p-2 flex flex-wrap gap-2 mb-4"
+                className="bg-white border border-black/[0.08] rounded-[14px] p-2 flex flex-wrap gap-2 mb-4"
                 style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}
               >
                 {TABS.map((tab) => (
@@ -412,13 +409,14 @@ const cleanImage = profileImage?.split("?")[0];
                 {activeTab === "professional" && (
                   <div>
                     <SectionHead title="Qualifications" />
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <SelectField
                         label="Primary Qualification"
                         icon={<FaBook />}
                         name="degree"
                         value={profile.degree || ""}
-                        onChange={handleChange}
+                        readOnly
                       >
                         <option value="">Select qualification</option>
                         {QUALIFICATIONS.map((q) => (
@@ -427,44 +425,44 @@ const cleanImage = profileImage?.split("?")[0];
                           </option>
                         ))}
                       </SelectField>
+
                       <Field
                         label="Specialization"
                         icon={<FaStethoscope />}
                         name="specialization"
                         value={profile.specialization || ""}
-                        onChange={handleChange}
-                        placeholder="e.g. Cardiology"
+                        readOnly
                       />
+
                       <Field
                         label="Years of Experience"
                         icon={<FaClock />}
                         name="experience_years"
                         value={profile.experience_years || ""}
-                        onChange={handleChange}
-                        placeholder="e.g. 8"
                         type="number"
-                        min="0"
-                        max="60"
+                        readOnly
                       />
                     </div>
+
                     <SectionHead title="Council Registration" />
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Field
                         label="Registration Number"
                         icon={<FaHashtag />}
                         name="licenseNumber"
                         value={profile.licenseNumber || ""}
-                        onChange={handleChange}
-                        placeholder="e.g. MH-12345678"
+                        readOnly
                       />
+
                       <Field
                         label="State Council"
                         icon={<FaShieldAlt />}
                         name="state_council"
                         value={profile.state_council || ""}
-                        onChange={handleChange}
-                        placeholder="e.g. Maharashtra Medical Council"
+                        readOnly
                       />
+
                       <Field
                         label="Registration Valid Till"
                         icon={<FaCalendarAlt />}
@@ -474,9 +472,23 @@ const cleanImage = profileImage?.split("?")[0];
                             ? profile.valid_till.split("T")[0]
                             : ""
                         }
-                        onChange={handleChange}
                         type="date"
+                        readOnly
                       />
+                    </div>
+
+                    {/* Locked information */}
+                    <div className="mt-5 flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3.5">
+                      <FaShieldAlt
+                        className="text-blue-500 mt-0.5 flex-shrink-0"
+                        size={14}
+                      />
+
+                      <p className="text-[12px] text-slate-600 leading-relaxed">
+                        Professional and medical registration details are
+                        verified and cannot be edited from your profile. Please
+                        contact support if any correction is required.
+                      </p>
                     </div>
                   </div>
                 )}

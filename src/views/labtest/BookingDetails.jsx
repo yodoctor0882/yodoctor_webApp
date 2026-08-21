@@ -161,7 +161,8 @@ export default function BookingDetails() {
               <div>
                 <p className="text-xs text-[#64748B]">Amount</p>
                 <p className="text-sm font-semibold text-[#0F172A]">
-                  ₹{booking.booking.total_amount}
+                  ₹{Number( booking.booking.total_amount).toFixed(0)}
+                   
                 </p>
               </div>
             </div>

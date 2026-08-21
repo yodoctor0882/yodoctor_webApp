@@ -1,6 +1,3 @@
-
-
-
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Sidebar from "../Sidebar";
@@ -8,7 +5,8 @@ import PatientHeaderDashboard from "../PatientHeaderDashboard";
 import DoctorHeaderDashboard from "../DoctorHeaderDashboard";
 import AdminHeaderDashboard from "../AdminHeaderDashboard";
 import HealthcareChatbot from "../../yodoctor_chatbot/HealthcareChatbot";
-
+import api from "../../services/api";
+import { notify } from "../../utils/notify";
 /* ================= SAFE STORAGE ================= */
 const getStoredUser = () => {
   try {
@@ -19,6 +17,7 @@ const getStoredUser = () => {
 };
 
 const DashboardLayout = () => {
+  
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,10 +30,77 @@ const DashboardLayout = () => {
 
   const role = loggedInUser?.role;
 
-  /* ================= AUTH GUARD ================= */
   useEffect(() => {
-    if (!localStorage.getItem("token")) navigate("/");
-  }, [navigate]);
+    if (role !== "DOCTOR") return;
+
+    let cancelled = false;
+
+    const checkDoctorSubscription = async () => {
+      try {
+        const res = await api.get("/razorpay/subscriptions/active");
+
+        if (cancelled) return;
+
+        if (!res.data?.data?.subscription) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("loggedInUser");
+
+          sessionStorage.removeItem("token");
+          sessionStorage.removeItem("loggedInUser");
+
+          navigate("/doctorloginpage", {
+            replace: true,
+          });
+        }
+      } catch (err) {
+        if (cancelled) return;
+
+        console.error("Subscription check failed:", err);
+
+        const status = err.response?.status;
+
+        // Token invalid/expired
+        if (status === 401 || status === 403) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("loggedInUser");
+
+          sessionStorage.removeItem("token");
+          sessionStorage.removeItem("loggedInUser");
+
+          navigate("/doctorloginpage", {
+            replace: true,
+          });
+
+          return;
+        }
+
+        // Rate limit par logout/toast nahi
+        if (status === 429) {
+          console.warn("Subscription check rate limited");
+          return;
+        }
+
+        notify.error("Unable to verify subscription. Please try again.");
+      }
+    };
+
+    checkDoctorSubscription();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [role, navigate]);
+
+  /* ================= AUTH GUARD ================= */
+useEffect(() => {
+  const token =
+    localStorage.getItem("token") ||
+    sessionStorage.getItem("token");
+
+  if (!token) {
+    navigate("/");
+  }
+}, [navigate]);
 
   /* ================= USER SYNC ================= */
   useEffect(() => {
@@ -90,14 +156,16 @@ const DashboardLayout = () => {
   /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-gray-50">
-
       {/* ===== DESKTOP SIDEBAR ===== */}
       {!isMobile && (
         <aside
           className={`fixed top-0 left-0 h-screen z-40 transition-all duration-300
             ${isDesktopSidebarOpen ? "w-64" : "w-20"}`}
         >
-          <Sidebar isOpen={isDesktopSidebarOpen} setIsOpen={setIsDesktopSidebarOpen} />
+          <Sidebar
+            isOpen={isDesktopSidebarOpen}
+            setIsOpen={setIsDesktopSidebarOpen}
+          />
         </aside>
       )}
 
@@ -131,7 +199,7 @@ const DashboardLayout = () => {
 
         {/* Main */}
         <main className="pt-20 p-4">
-          <HealthcareChatbot />
+          {/* <HealthcareChatbot /> */}
           <Outlet />
         </main>
       </div>

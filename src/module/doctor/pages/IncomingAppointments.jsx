@@ -2,7 +2,11 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { notify } from "../../../utils/notify";
 import api from "../../../services/api";
 import { useSocket } from "../../../context/SocketContext";
-import { respondAppointment, autoAcceptAppointments } from "../../../services/doctorService";
+import {
+  respondAppointment,
+  autoAcceptAppointments,
+} from "../../../services/doctorService";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "";
 
@@ -21,7 +25,8 @@ const getInitial = (name) => {
 };
 
 const isToday = (date) => {
-  const d = new Date(date), today = new Date();
+  const d = new Date(date),
+    today = new Date();
   return (
     d.getDate() === today.getDate() &&
     d.getMonth() === today.getMonth() &&
@@ -38,6 +43,7 @@ const Appointments = () => {
   const [filter, setFilter] = useState("ALL");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const { socket, connected } = useSocket();
+  const navigate = useNavigate();
 
   const loadAppointments = useCallback(async () => {
     try {
@@ -51,41 +57,32 @@ const Appointments = () => {
     }
   }, []);
 
-useEffect(() => {
-  loadAppointments();
-}, [loadAppointments]);
-
-useEffect(() => {
-  if (!socket || !connected) return;
-
-  const handleNewAppointment = () => {
+  useEffect(() => {
     loadAppointments();
-    notify.success("New appointment received");
-  };
+  }, [loadAppointments]);
 
-  const handleStatusUpdate = () => {
-    loadAppointments();
-  };
+  useEffect(() => {
+    if (!socket || !connected) return;
 
-  socket.on("appointment-requested", handleNewAppointment);
+    const handleNewAppointment = () => {
+      loadAppointments();
+      notify.success("New appointment received");
+    };
 
-  socket.on(
-    "appointment-status-updated",
-    handleStatusUpdate
-  );
+    const handleStatusUpdate = () => {
+      loadAppointments();
+    };
 
-  return () => {
-    socket.off(
-      "appointment-requested",
-      handleNewAppointment
-    );
+    socket.on("appointment-requested", handleNewAppointment);
 
-    socket.off(
-      "appointment-status-updated",
-      handleStatusUpdate
-    );
-  };
-}, [socket, connected, loadAppointments]);
+    socket.on("appointment-status-updated", handleStatusUpdate);
+
+    return () => {
+      socket.off("appointment-requested", handleNewAppointment);
+
+      socket.off("appointment-status-updated", handleStatusUpdate);
+    };
+  }, [socket, connected, loadAppointments]);
 
   const handleAutoAccept = async () => {
     try {
@@ -105,13 +102,17 @@ useEffect(() => {
 
   const filteredAppointments = useMemo(() => {
     let list = appointments;
-    if (filter === "TODAY")   list = appointments.filter((a) => isToday(a.appointment_date));
-    if (filter === "MORNING") list = appointments.filter((a) => a.appointment_slot === "MORNING");
-    if (filter === "EVENING") list = appointments.filter((a) => a.appointment_slot === "EVENING");
+    if (filter === "TODAY")
+      list = appointments.filter((a) => isToday(a.appointment_date));
+    if (filter === "MORNING")
+      list = appointments.filter((a) => a.appointment_slot === "MORNING");
+    if (filter === "EVENING")
+      list = appointments.filter((a) => a.appointment_slot === "EVENING");
     return [...list].sort((a, b) => {
       if (a.status === "PENDING" && b.status !== "PENDING") return -1;
       if (a.status !== "PENDING" && b.status === "PENDING") return 1;
-      if (isToday(a.appointment_date) && !isToday(b.appointment_date)) return -1;
+      if (isToday(a.appointment_date) && !isToday(b.appointment_date))
+        return -1;
       if (!isToday(a.appointment_date) && isToday(b.appointment_date)) return 1;
       return new Date(a.appointment_date) - new Date(b.appointment_date);
     });
@@ -147,10 +148,19 @@ useEffect(() => {
   return (
     <div
       className="font-dm min-h-screen bg-[#f5f3ef] px-4 sm:px-6 py-10"
-      style={{ backgroundImage: "radial-gradient(ellipse at 10% 5%, rgba(14,116,144,0.05) 0%, transparent 50%)" }}
+      style={{
+        backgroundImage:
+          "radial-gradient(ellipse at 10% 5%, rgba(14,116,144,0.05) 0%, transparent 50%)",
+      }}
     >
       <div className="max-w-5xl mx-auto">
-
+        <button
+          onClick={() => navigate(-1)}
+          className="font-[family-name:var(--font-dm)] text-[13px] font-semibold mb-5 flex items-center gap-1.5 cursor-pointer transition-all duration-200 hover:-translate-x-1"
+          style={{ color: "#0086C3", background: "none", border: "none" }}
+        >
+          ← Back
+        </button>
         <div className="animate-fade-up flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="font-playfair text-[clamp(24px,3.5vw,36px)] font-bold text-[#1c2b33] leading-tight m-0">
@@ -173,12 +183,15 @@ useEffect(() => {
               key={f}
               onClick={() => setFilter(f)}
               className={`font-dm px-5 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap border transition cursor-pointer
-                ${filter === f
-                  ? "bg-[#0e7490] text-white border-[#0e7490]"
-                  : "bg-white text-[#6b7f8a] border-black/[0.08] hover:border-[#0e7490] hover:text-[#0e7490]"
+                ${
+                  filter === f
+                    ? "bg-[#0e7490] text-white border-[#0e7490]"
+                    : "bg-white text-[#6b7f8a] border-black/[0.08] hover:border-[#0e7490] hover:text-[#0e7490]"
                 }`}
             >
-              {f === "ALL" ? `All (${appointments.length})` : f.charAt(0) + f.slice(1).toLowerCase()}
+              {f === "ALL"
+                ? `All (${appointments.length})`
+                : f.charAt(0) + f.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
@@ -187,11 +200,18 @@ useEffect(() => {
           {filteredAppointments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <span className="text-4xl opacity-30">📋</span>
-              <p className="font-dm text-[14px] text-[#6b7f8a]">No appointments found</p>
+              <p className="font-dm text-[14px] text-[#6b7f8a]">
+                No appointments found
+              </p>
             </div>
           ) : (
             filteredAppointments.map((a) => {
-              const displayName = a.familyMemberName || a.patientName || a.patient_name || a.walk_in_patient_name || "Walk-in Patient";
+              const displayName =
+                a.familyMemberName ||
+                a.patientName ||
+                a.patient_name ||
+                a.walk_in_patient_name ||
+                "Walk-in Patient";
               const isProcessing = processingId === a.id;
               const imgUrl = getImageUrl(a.profile_image);
               return (
@@ -201,14 +221,16 @@ useEffect(() => {
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       {imgUrl && !a.familyMemberName ? (
                         <img
                           src={imgUrl}
                           alt={displayName}
                           className="w-12 h-12 rounded-full object-cover border border-black/[0.07] flex-shrink-0"
-                          onError={(e) => { e.target.onerror = null; e.target.style.display = "none"; }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.style.display = "none";
+                          }}
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-[#0e7490] text-white flex items-center justify-center font-playfair font-bold text-[16px] flex-shrink-0">
@@ -216,9 +238,22 @@ useEffect(() => {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="font-dm font-semibold text-[15px] text-[#1c2b33] truncate">{displayName}</p>
+                        <p className="font-dm font-semibold text-[15px] text-[#1c2b33] truncate">
+                          {displayName}
+                        </p>
                         <p className="font-dm text-[14px] font-semibold  text-[#6b7f8a]">
-                          {a.appointment_slot} <span className="font-bold text-[#000000]">· {new Date(a.appointment_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                          {a.appointment_slot}{" "}
+                          <span className="font-bold text-[#000000]">
+                            ·{" "}
+                            {new Date(a.appointment_date).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -227,11 +262,14 @@ useEffect(() => {
                       <span className="font-dm text-[11px] font-semibold tracking-widest uppercase px-3 py-1 rounded-full bg-[#ecfeff] text-[#0e7490] border border-[rgba(14,116,144,0.15)]">
                         #{a.token_number}
                       </span>
-                      <span className={`font-dm text-[11px] font-semibold tracking-widest uppercase px-3 py-1 rounded-full border
-                        ${a.status === "PENDING"
-                          ? "bg-amber-50 text-amber-600 border-amber-200"
-                          : "bg-emerald-50 text-emerald-600 border-emerald-200"
-                        }`}>
+                      <span
+                        className={`font-dm text-[11px] font-semibold tracking-widest uppercase px-3 py-1 rounded-full border
+                        ${
+                          a.status === "PENDING"
+                            ? "bg-amber-50 text-amber-600 border-amber-200"
+                            : "bg-emerald-50 text-emerald-600 border-emerald-200"
+                        }`}
+                      >
                         {a.status}
                       </span>
                     </div>
@@ -268,9 +306,15 @@ useEffect(() => {
             className="animate-scale-in bg-white rounded-[22px] w-[90%] max-w-[400px] p-8 text-center"
             style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.14)" }}
           >
-            <div className="w-12 h-12 rounded-xl bg-[#ecfeff] text-[#0e7490] text-xl flex items-center justify-center mx-auto mb-5">✦</div>
-            <h3 className="font-playfair text-[22px] font-bold text-[#1c2b33] m-0 mb-2">Auto Accept All?</h3>
-            <p className="font-dm text-[13px] text-[#6b7f8a] m-0 mb-7 leading-relaxed">All pending appointments will be accepted at once.</p>
+            <div className="w-12 h-12 rounded-xl bg-[#ecfeff] text-[#0e7490] text-xl flex items-center justify-center mx-auto mb-5">
+              ✦
+            </div>
+            <h3 className="font-playfair text-[22px] font-bold text-[#1c2b33] m-0 mb-2">
+              Auto Accept All?
+            </h3>
+            <p className="font-dm text-[13px] text-[#6b7f8a] m-0 mb-7 leading-relaxed">
+              All pending appointments will be accepted at once.
+            </p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => setShowConfirmModal(false)}

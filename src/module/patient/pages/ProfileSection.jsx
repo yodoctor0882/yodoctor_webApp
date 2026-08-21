@@ -122,7 +122,7 @@ export default function ProfileSection() {
     gender: "",
     dob: "",
   };
-  const { setImage } = useImage();
+  const { setPatientImage } = useImage();
   const [profile, setProfile] = useState(emptyProfile);
   const [profileImage, setProfileImage] = useState(DEFAULT_AVATAR);
   const [originalProfile, setOriginalProfile] = useState(emptyProfile);
@@ -153,7 +153,7 @@ export default function ProfileSection() {
         setProfileImage(imageUrl);
 
         if (rawUrl) {
-          setImage(rawUrl); // ✅ global update
+          setPatientImage(rawUrl); // ✅ global update
         }
       } catch (err) {
         console.error("Profile load error:", err);
@@ -181,7 +181,7 @@ export default function ProfileSection() {
       const fullUrl = `${rawUrl}?t=${Date.now()}`;
 
       setProfileImage(fullUrl);
-      setImage(rawUrl);
+      setPatientImage(rawUrl);
       // ✅ clean URL store
 
       notify.success("Profile image updated");
@@ -193,7 +193,7 @@ export default function ProfileSection() {
     try {
       await deleteProfileImageApi();
       setProfileImage(DEFAULT_AVATAR);
-      setImage(null);
+      setPatientImage(null);
       setShowDeleteModal(false);
       notify.success("Profile image removed");
     } catch {

@@ -97,10 +97,6 @@ const AddFamilyPage = () => {
     if (!familyMember.gender) newErrors.gender = "Required";
     if (!familyMember.dob) newErrors.dob = "Required";
     if (!familyMember.relation) newErrors.relation = "Required";
-    if (!familyMember.heightCm || Number(familyMember.heightCm) <= 0)
-      newErrors.heightCm = "Valid height required";
-    if (!familyMember.weightKg || Number(familyMember.weightKg) <= 0)
-      newErrors.weightKg = "Valid weight required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -145,8 +141,7 @@ const AddFamilyPage = () => {
         : "border border-[rgba(12,30,58,0.12)] bg-white focus:border-[#0086C3] focus:border-2"
     }`;
 
-  const labelCls =
-    "text-[12px] font-semibold uppercase tracking-wider  block";
+  const labelCls = "text-[12px] font-semibold uppercase tracking-wider  block";
 
   return (
     <div
@@ -281,9 +276,7 @@ const AddFamilyPage = () => {
             </div>
 
             <div>
-              <label className={labelCls}>
-                Blood Group (optional) <span className="text-red-400">*</span>
-              </label>
+              <label className={labelCls}>Blood Group (optional)</label>
               <select
                 name="bloodGroup"
                 value={familyMember.bloodGroup}
@@ -305,17 +298,14 @@ const AddFamilyPage = () => {
                 </p>
               )}
             </div>
-
             <div>
-              <label className={labelCls}>
-                Height (cm) <span className="text-red-400">*</span>
-              </label>
+              <label className={labelCls}>Height (Optional)</label>
               <input
                 type="number"
                 name="heightCm"
                 value={familyMember.heightCm}
                 onChange={handleChange}
-                placeholder="e.g. 170"
+                placeholder="e.g. 170 cm"
                 className={inputCls("heightCm")}
               />
               {errors.heightCm && (
@@ -326,15 +316,13 @@ const AddFamilyPage = () => {
             </div>
 
             <div>
-              <label className={labelCls}>
-                Weight (kg) <span className="text-red-400">*</span>
-              </label>
+              <label className={labelCls}>Weight (Optional)</label>
               <input
                 type="number"
                 name="weightKg"
                 value={familyMember.weightKg}
                 onChange={handleChange}
-                placeholder="e.g. 65"
+                placeholder="e.g. 65 kg"
                 className={inputCls("weightKg")}
               />
               {errors.weightKg && (

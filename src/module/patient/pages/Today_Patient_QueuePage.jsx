@@ -3,9 +3,7 @@ import { FaClock } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import { notify } from "../../../utils/notify";
 import api from "../../../services/api";
-import {
-  createConsultation,
-} from "../../../services/livekitService";
+import { createConsultation } from "../../../services/livekitService";
 
 const PatientQueuePage = () => {
   const navigate = useNavigate();
@@ -24,17 +22,12 @@ const PatientQueuePage = () => {
   const [estimatedWaitTime, setEstimatedWaitTime] = useState("");
   const [error, setError] = useState("");
 
-
-
-
   /* ================= LOAD QUEUE STATUS ================= */
   useEffect(() => {
     if (!appointmentId) {
       navigate("/client/dashboard");
       return;
     }
-
-
 
     const fetchQueueStatus = async () => {
       try {
@@ -49,7 +42,7 @@ const PatientQueuePage = () => {
         setEstimatedWaitTime(`${res.data.estimatedWaitMinutes} mins`);
         setError("");
       } catch (err) {
-        // 🔹 Agar appointment future ka hai
+
         if (err.response?.status === 404) {
           setError("Queue will be available on appointment day");
           return;
@@ -63,7 +56,6 @@ const PatientQueuePage = () => {
     };
     fetchQueueStatus();
 
-    //  Auto refresh every 30 sec
     const interval = setInterval(fetchQueueStatus, 30000);
     return () => clearInterval(interval);
   }, [appointmentId, navigate]);
@@ -116,8 +108,6 @@ const PatientQueuePage = () => {
         >
           Back to Dashboard
         </button>
-
-
       </div>
     </div>
   );

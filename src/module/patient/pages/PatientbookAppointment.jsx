@@ -4,11 +4,13 @@ import QrScanner from "qr-scanner";
 import Typewriter from "typewriter-effect";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { notify } from "../../../utils/notify";
 import {
   getCities,
   getDiseases,
   getDoctorNames,
 } from "../../../services/patientService";
+import { getDoctorById } from "../../../services/patientService";
 
 import {
   FaSearch,
@@ -62,6 +64,52 @@ const PatientbookAppointment = () => {
   const [loadingCities, setLoadingCities] = useState(false);
 
   const navigate = useNavigate();
+
+const validateQRAndNavigate = async (doctorId) => {
+  try {
+    console.log("🔍 SCANNED DOCTOR ID:", doctorId);
+
+    const res = await getDoctorById(doctorId);
+
+    console.log("🔍 FULL API RESPONSE:", res);
+    console.log("🔍 RESPONSE DATA:", res.data);
+
+    const doctor = res.data.doctor || res.data;
+
+    console.log("🔍 DOCTOR DATA:", doctor);
+    console.log(
+      "🔍 hasActiveSubscription:",
+      doctor?.hasActiveSubscription,
+    );
+    console.log(
+      "🔍 hasActiveSubscription TYPE:",
+      typeof doctor?.hasActiveSubscription,
+    );
+
+    // Doctor subscription inactive
+    if (!doctor?.hasActiveSubscription) {
+      console.log("❌ SUBSCRIPTION INACTIVE CONDITION RUNNING");
+
+      notify.info("This doctor is currently unavailable for appointments");
+      return;
+    }
+
+    console.log("✅ SUBSCRIPTION ACTIVE — NAVIGATING");
+
+    navigate(
+      `/client/bookappointmentpage/${doctorId}?fromQR=true`
+    );
+  } catch (err) {
+    console.error("❌ QR doctor validation failed:", err);
+    console.error("❌ Backend response:", err.response?.data);
+    console.error("❌ Status:", err.response?.status);
+
+    notify.info(
+      err.response?.data?.message ||
+        "This doctor is currently unavailable for appointments"
+    );
+  }
+};
 
   useEffect(() => {
     if (autoScan === "true") {
@@ -181,11 +229,14 @@ const PatientbookAppointment = () => {
           setDatas(result.data);
 
           const doctorId = extractDoctorId(result.data);
+
           if (!doctorId) {
-            alert("Invalid QR code");
+            notify.info("Invalid QR code");
             return;
           }
-          navigate(`/client/bookappointmentpage/${doctorId}?fromQR=true`);
+
+          // subscription check → uske baad navigate
+          validateQRAndNavigate(doctorId);
         },
         { returnDetailedScanResult: true },
       );
@@ -213,13 +264,13 @@ const PatientbookAppointment = () => {
       const doctorId = extractDoctorId(result.data);
       setDatas(result.data);
       if (!doctorId) {
-        alert("Invalid QR code");
+        notify.info("Invalid QR code");
         return;
       }
-      // navigate(`/client/bookappointmentpage/${doctorId}`);
-      navigate(`/client/bookappointmentpage/${doctorId}?fromQR=true`);
+
+      await validateQRAndNavigate(doctorId);
     } catch {
-      alert("Could not read QR code from image");
+      notify.info("Could not read QR code from image");
     }
   };
 
@@ -281,7 +332,7 @@ const PatientbookAppointment = () => {
                       >
                         <div className="font-medium">{city.city}</div>
                         <div className="text-xs text-gray-500">
-                          {city.address || city.landmark  }
+                          {city.address || city.landmark}
                         </div>
                       </li>
                     ))
@@ -412,7 +463,7 @@ const PatientbookAppointment = () => {
           </div>
         </div>
       </section>
-{/* 
+      {/* 
       <section className="bg-[#f5f6fa] py-16 px-6 md:px-20 min-h-screen">
         <div className="flex flex-col md:flex-row justify-around items-center gap-10">
           <div className="text-center md:text-left max-w-lg">

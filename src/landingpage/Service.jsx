@@ -11,8 +11,18 @@ import viewlabreportImg from "../assets/images/view_lab_report.webp";
 import prescriptionmanagementImg from "../assets/images/prescription_management.webp";
 import healthpackageImg from "../assets/images/health_package.webp";
 import homecareserviceImg from "../assets/images/home_care_service.webp";
-
 import SEO from "../components/SEO";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/pagination";
+
+import banner1 from "../assets/images/onlinebookappointment.png";
+import banner2 from "../assets/images/medical_certificate.png";
+import banner3 from "../assets/images/labtest.png";
+import banner4 from "../assets/images/homecare_services.png";
 
 const Icon = ({ d, size = 18, color = "#0072BC" }) => (
   <svg
@@ -321,103 +331,67 @@ const Service = () => {
         url="https://www.yodoctor.in/services"
       />
 
-      {/* ── Hero Banner ──────────────────────────────── */}
-      <div
-        className="relative w-full overflow-hidden"
-        style={{ minHeight: 220, background: "#050f24" }}
-      >
-        {/* Dot-grid */}
-        <svg
-          className="absolute inset-0 w-full h-full"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{ opacity: 0.07 }}
-        >
-          <defs>
-            <pattern
-              id="dots"
-              width="32"
-              height="32"
-              patternUnits="userSpaceOnUse"
-            >
-              <circle cx="1.5" cy="1.5" r="1.5" fill="white" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#dots)" />
-        </svg>
-
-        {/* Glow orb */}
-        <div
-          className="absolute"
-          style={{
-            width: 320,
-            height: 320,
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle, rgba(0,114,188,0.25) 0%, transparent 70%)",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%,-50%)",
-            pointerEvents: "none",
-          }}
+{/* ── Hero Image Slider ──────────────────────────────── */}
+<div className="relative w-full overflow-hidden bg-[#eaeef4] ">
+  <Swiper
+    modules={[Autoplay, Pagination]}
+    spaceBetween={0}
+    slidesPerView={1}
+    loop={true}
+    autoplay={{
+      delay: 3500,
+      disableOnInteraction: false,
+    }}
+    pagination={{
+      clickable: true,
+    }}
+    className="max-w-7xl mx-auto mt-18 rounded-2xl"
+  >
+    {/* Slide 1 */}
+    <SwiperSlide>
+     <div className=" mx-auto">
+        <img
+          src={banner1}
+          alt="YoDoctor Healthcare Services"
+          className="block w-full h-[280px] sm:h-[320px] md:h-[380px] lg:h-[430px] "
         />
-
-        <div className="relative z-10 flex flex-col items-center justify-center py-14 px-4 text-center mt-8 sm:mt-10">
-          <div className="flex items-center gap-1 mb-1">
-            <span className="font-extrabold uppercase tracking-widest text-base sm:text-lg text-[#0072BC]">
-              Yo
-            </span>
-            <span className="font-extrabold uppercase tracking-widest text-base sm:text-lg text-[#16a34a]">
-              Doctor
-            </span>
-          </div>
-
-          <h1
-            className="font-black uppercase text-white"
-            style={{
-              fontSize: "clamp(1.8rem, 6vw, 3.8rem)",
-              letterSpacing: "0.12em",
-              lineHeight: 1.15,
-            }}
-          >
-            Our <span style={{ color: "#0072BC" }}>Services</span>
-          </h1>
-
-          <div className="flex items-center gap-3 mt-3">
-            <div
-              style={{
-                width: 48,
-                height: 2,
-                background: "#0072BC",
-                borderRadius: 2,
-              }}
-            />
-            <div
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: "50%",
-                background: "#0072BC",
-              }}
-            />
-            <div
-              style={{
-                width: 48,
-                height: 2,
-                background: "#0072BC",
-                borderRadius: 2,
-              }}
-            />
-          </div>
-
-          <p
-            className="mt-4 text-sm sm:text-base max-w-xs sm:max-w-sm px-4"
-            style={{ color: "rgba(180,210,255,0.75)", lineHeight: 1.7 }}
-          >
-            Comprehensive healthcare solutions designed for your convenience and
-            well-being
-          </p>
-        </div>
       </div>
+    </SwiperSlide>
+
+    {/* Slide 2 */}
+    <SwiperSlide>
+      <div className="w-full">
+        <img
+          src={banner2}
+          alt="YoDoctor Healthcare Services"
+          className="block w-full h-[280px] sm:h-[320px] md:h-[380px] lg:h-[430px]"
+        />
+      </div>
+    </SwiperSlide>
+
+    {/* Slide 3 */}
+    <SwiperSlide>
+      <div className="w-full">
+        <img
+          src={banner3}
+          alt="YoDoctor Healthcare Services"
+          className="block w-full h-[280px] sm:h-[320px] md:h-[380px] lg:h-[430px]"
+        />
+      </div>
+    </SwiperSlide>
+
+    {/* Slide 4 */}
+    <SwiperSlide>
+      <div className="w-full">
+        <img
+          src={banner4}
+          alt="YoDoctor Healthcare Services"
+          className="block w-full h-[280px] sm:h-[320px] md:h-[380px] lg:h-[430px]"
+        />
+      </div>
+    </SwiperSlide>
+  </Swiper>
+</div>
 
       {/* ── Services Grid ────────────────────────────── */}
       <section style={{ background: "#eef3fb", padding: "56px 0 72px" }}>

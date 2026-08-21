@@ -113,8 +113,6 @@ const DoctorDetailPage = () => {
       icon: "💰",
       highlight: true,
     },
-
-    { label: "Timings", value: doctor.timings, icon: "🕐" },
     {
       label: "Morning",
       value: doctor.sessionTimings?.morning,
@@ -125,14 +123,37 @@ const DoctorDetailPage = () => {
       value: doctor.sessionTimings?.evening,
       icon: "🌙",
     },
+     { label: "Timings", value: doctor.timings, icon: "🕐" },
 
     {
       label: "Available Days",
       value: formattedDays,
       icon: "📅",
-      full: true,
     },
   ];
+
+  const getStatus = () => {
+    if (!doctor.available_today) {
+      return {
+        text: "Not Available",
+        color: "bg-orange-100 text-orange-700  text-center py-1 font-bold",
+      };
+    }
+
+    if (!doctor.is_available) {
+      return {
+        text: "Not Available",
+        color: "bg-red-100 text-red-700 text-center py-1 font-bold",
+      };
+    }
+
+    return {
+      text: "Available",
+      color: "bg-green-100 text-green-700 text-center py-1 font-bold",
+    };
+  };
+
+  const status = getStatus();
 
   return (
     <div
@@ -190,9 +211,10 @@ const DoctorDetailPage = () => {
                     }}
                   />
                   <span
-                    className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-400"
-                    style={{ border: "2px solid #fff" }}
-                  />
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${status.color}`}
+                  >
+                    {status.text}
+                  </span>
                 </div>
 
                 <div className="pb-1">

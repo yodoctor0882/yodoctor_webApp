@@ -9,7 +9,7 @@ export const generatePrescriptionPDF = (appointment) => {
   doc.setFontSize(12);
   doc.text(`Doctor: ${appointment.doctorName}`, 20, 35);
   doc.text(`Date: ${appointment.date}`, 20, 45);
-  doc.text(`Hospital: ${appointment.hospital || "N/A"}`, 20, 55);
+  doc.text(`Clinic: ${appointment.clinic_name || "N/A"}`, 20, 55);
 
   doc.text("Medicines:", 20, 70);
   doc.text(appointment.medicines || "No medicines prescribed", 25, 80);

@@ -123,7 +123,7 @@ const DoctorReviews = () => {
                   )}
 
                   <p className="font-dm text-[13px] text-[#1c2b33] font-semibold">
-                    {  r.patientName || r.familyMemberName  }
+                    {r.reviewedPatientName || "Patient"}
                   </p>
                 </div>
                 <div className="flex items-center gap-1 mb-3">

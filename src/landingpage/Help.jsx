@@ -111,9 +111,8 @@ const ARTICLES = [
     color: "#d97706",
     details: [
       { q: "When will I get my prescription?", a: "Usually within 10–15 minutes after consultation. A downloadable PDF is available in 'My Prescriptions'." },
-      { q: "Where can I find old prescriptions?", a: "Go to Profile → Medical Records → Prescriptions tab to view all past prescriptions." },
+      { q: "Where can I find old prescriptions?", a: "Go to Profile → Appointment History → My Prescriptions tab to view all past prescriptions." },
       { q: "How to access lab reports", a: "You'll be notified once your lab report is uploaded. It can be downloaded from the 'My Reports' section." },
-      { q: "How to share reports with doctor", a: "During booking, use the 'Attach Report' option to upload a PDF visible to the doctor during consultation." },
       { q: "How long is a prescription valid?", a: "Typically valid for 30 days for general medicines; special medicines may vary per doctor's advice." },
     ],
   },
@@ -125,7 +124,7 @@ const ARTICLES = [
     color: "#dc2626",
     details: [
       { q: "Having login or OTP issues?", a: "Ensure stable network and resend OTP. If it continues, clear browser cache or update the app." },
-      { q: "Video lagging or disconnecting", a: "Check internet speed (minimum 1.5 Mbps). Close background apps or switch Wi-Fi/mobile data." },
+      // { q: "Video lagging or disconnecting", a: "Check internet speed (minimum 1.5 Mbps). Close background apps or switch Wi-Fi/mobile data." },
       { q: "Camera or microphone not detected", a: "Go to Browser/App Settings → Permissions → Enable Camera/Mic. Then reload and test again." },
       { q: "App crashing or running slow", a: "Update to latest version and close unused apps. If still an issue, use 'Report Bug' with details." },
     ],
@@ -149,7 +148,7 @@ const ARTICLES = [
     desc: "Reach our support team for any queries or urgent help.",
     color: "#0891b2",
     details: [
-      { q: "How to contact customer support?", a: "Live chat (Mon–Sat, 9 AM–8 PM) or email founder@yodoctor.in or call +91-8839003275." },
+      { q: "How to contact customer support?", a: "Live chat (Mon–Sat, 9 AM–8 PM) or email founder@yodoctor.in or call +91-9277207339." },
       { q: "Is emergency support available?", a: "For emergencies, please call 108 or visit the nearest hospital. We do not provide emergency diagnosis." },
       { q: "How to send feedback or complaints?", a: "Use the 'Send Feedback' form at the bottom of the Help page to contact our team." },
     ],

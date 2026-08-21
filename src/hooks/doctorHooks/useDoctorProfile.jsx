@@ -64,79 +64,132 @@ export default function useDoctorProfile() {
   const [profile, setProfile] = useState(INITIAL_PROFILE);
 const [profileImage, setProfileImage] = useState(DEFAULT_AVATAR);
   const [loading, setLoading] = useState(true);
-const { setImage } = useImage();
+const { setDoctorImage  } = useImage();
   /* ================= LOAD PROFILE + IMAGE ================= */
-  useEffect(() => {
-    const loadProfileAndImage = async () => {
-      try {
-        const res = await getDoctorProfile();
-        console.log("FULL API RESPONSE:", res.data);
-        const d = res.data.doctor;
-        const clinic = d.clinic || {};
-        setProfile({
-          doctorName: d.doctorName || "",
-          mobile: d.mobile || "",
-          email: d.email || "",
-          gender: d.gender || "",
-          bio: d.bio || "",
+useEffect(() => {
+  let isMounted = true;
 
-          degree: d.degree || "",
-          specialization: d.specialization || "",
-          experience_years: d.experience_years || "",
-          licenseNumber: d.licenseNumber || "",
-          state_council: d.state_council || "",
-          valid_till: d.valid_till || "",
+  const loadProfileAndImage = async () => {
+    setLoading(true);
 
-          clinic_name: clinic.clinic_name || "",
-          city: clinic.city || "",
-          address: clinic.address || "",
-          state: clinic.state || "",
-          pincode: clinic.pincode || "",
-          landmark: clinic.landmark || "",
-          mapsLink: clinic.mapsLink || "",
-          languages: Array.isArray(clinic.languages) ? clinic.languages : [],
+    // =========================
+    // 1. LOAD DOCTOR PROFILE
+    // =========================
+    try {
+      const res = await getDoctorProfile();
 
-          practice_type: d.practice_type || "",
-          hospital_name: d.hospital_name || "",
+      if (!isMounted) return;
 
-          consultationFee: d.consultationFee || "",
-          consultation_duration: d.consultation_duration || "",
-          availableDays: Array.isArray(d.availableDays) ? d.availableDays : [],
-          availability: Array.isArray(d.availability) ? d.availability : [],
-          rating: d.rating || 0,
+      console.log("FULL API RESPONSE:", res.data);
 
-          documents: d.documents || {
-            profile_picture: null,
-            certificate: null,
-            id_proof: null,
-            clinic_proof: null,
-          },
-        });
+      const d = res.data?.doctor;
 
-        const imgRes = await api.get("/auth/getprofile-image");
-        if (imgRes.data?.imageUrl) {
-          const rawUrl = buildImageUrl(imgRes.data.imageUrl, false);
-          const fullUrl = `${rawUrl}?t=${Date.now()}`;
-
-          setProfileImage(fullUrl);
-
-          // ✅ clean URL store
-          setImage(rawUrl);
-        } else {
-          setProfileImage(DEFAULT_AVATAR);
-          
-        }
-      } catch (err) {
-        console.error(err);
-        notify.error("Failed to load doctor profile");
-        setProfileImage(DEFAULT_AVATAR);
-      } finally {
-        setLoading(false);
+      if (!d) {
+        throw new Error("Doctor profile not found");
       }
-    };
 
-    loadProfileAndImage();
-  }, []);
+      const clinic = d.clinic || {};
+
+      setProfile({
+        doctorName: d.doctorName || "",
+        mobile: d.mobile || "",
+        email: d.email || "",
+        gender: d.gender || "",
+        bio: d.bio || "",
+
+        degree: d.degree || "",
+        specialization: d.specialization || "",
+        experience_years: d.experience_years || "",
+        licenseNumber: d.licenseNumber || "",
+        state_council: d.state_council || "",
+        valid_till: d.valid_till || "",
+
+        clinic_name: clinic.clinic_name || "",
+        city: clinic.city || "",
+        address: clinic.address || "",
+        state: clinic.state || "",
+        pincode: clinic.pincode || "",
+        landmark: clinic.landmark || "",
+        mapsLink: clinic.maps_link || clinic.mapsLink || "",
+
+        languages: Array.isArray(clinic.languages)
+          ? clinic.languages
+          : [],
+
+        practice_type: d.practice_type || "",
+        hospital_name: d.hospital_name || "",
+
+        consultationFee: d.consultationFee || "",
+        consultation_duration:
+          d.consultation_duration || "",
+
+        availableDays: Array.isArray(d.availableDays)
+          ? d.availableDays
+          : [],
+
+        availability: Array.isArray(d.availability)
+          ? d.availability
+          : [],
+
+        rating: d.rating || 0,
+
+        documents: d.documents || {
+          profile_picture: null,
+          certificate: null,
+          id_proof: null,
+          clinic_proof: null,
+        },
+      });
+    } catch (err) {
+      console.error("Doctor profile API failed:", err);
+
+      if (isMounted) {
+        notify.error("Failed to load doctor profile");
+      }
+    }
+
+    // =========================
+    // 2. LOAD PROFILE IMAGE
+    // =========================
+    try {
+      const imgRes = await api.get(
+        "/auth/getprofile-image"
+      );
+
+      if (!isMounted) return;
+
+      if (imgRes.data?.imageUrl) {
+        const rawUrl = buildImageUrl(
+          imgRes.data.imageUrl,
+          false
+        );
+
+        setProfileImage(rawUrl);
+        setDoctorImage (rawUrl);
+      } else {
+        setProfileImage(DEFAULT_AVATAR);
+      }
+    } catch (err) {
+      console.error("Profile image API failed:", err);
+
+      if (isMounted) {
+        setProfileImage(DEFAULT_AVATAR);
+      }
+
+    
+    }
+
+    if (isMounted) {
+      setLoading(false);
+    }
+  };
+
+  loadProfileAndImage();
+
+  return () => {
+    isMounted = false;
+  };
+}, []);
 
   /* ================= IMAGE UPLOAD ================= */
   const handleImageChange = async (e) => {
@@ -166,7 +219,7 @@ const hasCustomImage =
       setProfileImage(fullUrl);
 
       // ✅ clean URL store karo
-      setImage(rawUrl);
+      setDoctorImage (rawUrl);
 
 
       notify.success("Profile image updated");
@@ -182,7 +235,7 @@ const hasCustomImage =
       await api.delete("/auth/deleteprofile-image");
 
       setProfileImage(DEFAULT_AVATAR);
-      setImage(null);
+      setDoctorImage (null);
 
 
       notify.success("Profile image removed");

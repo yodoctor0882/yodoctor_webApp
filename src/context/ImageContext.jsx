@@ -1,32 +1,91 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
 
 const ImageContext = createContext();
 
 export const ImageProvider = ({ children }) => {
-  const [image, setImageState] = useState(null);
+  const [doctorImage, setDoctorImageState] = useState(null);
+  const [patientImage, setPatientImageState] = useState(null);
 
+  // ==============================
+  // LOAD STORED IMAGES
+  // ==============================
   useEffect(() => {
-  const stored = localStorage.getItem("profileImage");
-  if (stored) {
-    setImageState(stored); 
-  }
-}, []);
+    const storedDoctorImage =
+      localStorage.getItem("doctorProfileImage");
 
-  const setImage = (rawUrl) => {
+    const storedPatientImage =
+      localStorage.getItem("patientProfileImage");
+
+    if (storedDoctorImage) {
+      setDoctorImageState(storedDoctorImage);
+    }
+
+    if (storedPatientImage) {
+      setPatientImageState(storedPatientImage);
+    }
+  }, []);
+
+  // ==============================
+  // DOCTOR IMAGE
+  // ==============================
+  const setDoctorImage = (rawUrl) => {
     if (!rawUrl) {
-      localStorage.removeItem("profileImage");
-      setImageState(null);
+      localStorage.removeItem("doctorProfileImage");
+      setDoctorImageState(null);
       return;
     }
 
-    const fullUrl = `${rawUrl}?t=${Date.now()}`;
-    setImageState(fullUrl);
+    const fullUrl = `${rawUrl}${
+      rawUrl.includes("?") ? "&" : "?"
+    }t=${Date.now()}`;
 
-    localStorage.setItem("profileImage", rawUrl);
+    setDoctorImageState(fullUrl);
+
+    // Clean URL localStorage me
+    localStorage.setItem(
+      "doctorProfileImage",
+      rawUrl
+    );
+  };
+
+  // ==============================
+  // PATIENT IMAGE
+  // ==============================
+  const setPatientImage = (rawUrl) => {
+    if (!rawUrl) {
+      localStorage.removeItem("patientProfileImage");
+      setPatientImageState(null);
+      return;
+    }
+
+    const fullUrl = `${rawUrl}${
+      rawUrl.includes("?") ? "&" : "?"
+    }t=${Date.now()}`;
+
+    setPatientImageState(fullUrl);
+
+    // Clean URL localStorage me
+    localStorage.setItem(
+      "patientProfileImage",
+      rawUrl
+    );
   };
 
   return (
-    <ImageContext.Provider value={{ image, setImage }}>
+    <ImageContext.Provider
+      value={{
+        doctorImage,
+        setDoctorImage,
+
+        patientImage,
+        setPatientImage,
+      }}
+    >
       {children}
     </ImageContext.Provider>
   );

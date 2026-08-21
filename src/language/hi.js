@@ -184,11 +184,8 @@ ambulance_desc:
   labTest: "लैब टेस्ट",
   medicine: "दवा डिलीवरी",
   booknurse: "होम नर्सिंग केयर सेवा बुक करें",
-  onlineAppointment: "ऑनलाइन अपॉइंटमेंट बुक करें",
-  bloodDonor: "रक्तदाता खोजें",
-  manualbooking: " मैनुअल बुकिंग",
 Qrcode: "क्यूआर स्कैन करें और अपॉइंटमेंट टोकन प्राप्त करें",
-onlinebooking: "ऑनलाइन अपॉइंटमेंट",
+onlinebooking: "ऑनलाइन अपॉइंटमेंट बुक करें",
 Certificate: "चिकित्सा प्रमाणपत्र के लिए आवेदन"
 
 

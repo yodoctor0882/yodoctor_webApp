@@ -307,13 +307,13 @@ const Step1Personal = ({ formData, setFormData, nextStep }) => {
 
               <div className="mt-2.5 flex items-center justify-between">
                 <span className="text-xs text-slate-400 font-[family-name:var(--font-dm)]">
-                  Minimum 30 words required
+                  Minimum 15 words required
                 </span>
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
                     <div
                       className={`h-full rounded-full transition-all duration-300 ${
-                        wordCount >= 30
+                        wordCount >= 15
                           ? "bg-gradient-to-r from-emerald-400 to-green-500"
                           : "bg-gradient-to-r from-red-400 to-rose-400"
                       }`}
@@ -324,7 +324,7 @@ const Step1Personal = ({ formData, setFormData, nextStep }) => {
                   </div>
                   <span
                     className={`text-xs font-semibold tabular-nums font-[family-name:var(--font-dm)] ${
-                      wordCount >= 30 ? "text-emerald-600" : "text-slate-400"
+                      wordCount >= 15 ? "text-emerald-600" : "text-slate-400"
                     }`}
                   >
                     {wordCount}/{maxWords}

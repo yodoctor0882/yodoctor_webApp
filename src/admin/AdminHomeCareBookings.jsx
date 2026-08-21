@@ -4,19 +4,114 @@ import api from "../services/api";
 export default function AdminHomeCareBookings() {
   const [bookings, setBookings] = useState([]);
   const [search, setSearch] = useState("");
-
+const [updatingId, setUpdatingId] = useState(null);
   useEffect(() => {
     fetchBookings();
   }, []);
 
   const fetchBookings = async () => {
     try {
-      const res = await api.get("/patient/getbookhomecare");
+      const res = await api.get("/admin/homecarebookings");
       setBookings(res.data.data);
     } catch (err) {
       console.error(err);
     }
   };
+
+  const updateBookingStatus = async (id, status) => {
+  try {
+    setUpdatingId(id);
+
+    const res = await api.put(
+      `/admin/homecarebookings/${id}/status`,
+      { status }
+    );
+
+    if (res.data?.success) {
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === id
+            ? { ...booking, status }
+            : booking
+        )
+      );
+    }
+  } catch (err) {
+    console.error("Update home care status error:", err);
+
+    alert(
+      err.response?.data?.message ||
+        "Unable to update booking status."
+    );
+  } finally {
+    setUpdatingId(null);
+  }
+};
+
+const updateServiceStatus = async (id, status) => {
+  try {
+    setUpdatingId(id);
+
+    const res = await api.put(
+      `/admin/homecarebookings/${id}/service-status`,
+      { status }
+    );
+
+    if (res.data?.success) {
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === id
+            ? { ...booking, status }
+            : booking
+        )
+      );
+    }
+  } catch (err) {
+    console.error("Update service status error:", err);
+
+    alert(
+      err.response?.data?.message ||
+        "Unable to update service status."
+    );
+  } finally {
+    setUpdatingId(null);
+  }
+};
+
+
+const statusClass = (status) => {
+  switch (status) {
+    case "PENDING":
+      return "bg-yellow-50 text-yellow-700";
+
+    case "CONFIRMED":
+      return "bg-blue-50 text-blue-700";
+
+    case "REJECTED":
+      return "bg-red-50 text-red-600";
+
+    case "IN_PROGRESS":
+      return "bg-cyan-50 text-cyan-700";
+
+    case "COMPLETED":
+      return "bg-green-50 text-green-700";
+
+    case "CANCELLED":
+      return "bg-gray-100 text-gray-600";
+
+    default:
+      return "bg-gray-100 text-gray-600";
+  }
+};
+
+const formatStatus = (status) => {
+  if (!status) return "Pending";
+
+  return status
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
   const filtered = bookings.filter(
     (b) =>
@@ -25,11 +120,14 @@ export default function AdminHomeCareBookings() {
       b.contact_number?.includes(search),
   );
 
-  const avgDays = filtered.length
-    ? (
-        filtered.reduce((s, b) => s + b.number_of_days, 0) / filtered.length
-      ).toFixed(1)
-    : 0;
+const avgDays = filtered.length
+  ? (
+      filtered.reduce(
+        (s, b) => s + Number(b.number_of_days || 0),
+        0
+      ) / filtered.length
+    ).toFixed(1)
+  : 0;
   const uniqueServices = new Set(filtered.map((b) => b.service_type)).size;
   const thisWeek = filtered.filter((b) => {
     const d = new Date(b.preferred_date);
@@ -141,7 +239,9 @@ export default function AdminHomeCareBookings() {
                   "Date",
                   "Days",
                   "Time",
+                  "Status",
                   "Location",
+                  "Action",
                 ].map((col) => (
                   <th
                     key={col}
@@ -157,7 +257,7 @@ export default function AdminHomeCareBookings() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="text-center py-5 text-gray-400">
+                  <td colSpan="12" className="text-center py-5 text-gray-400">
                     No bookings found
                   </td>
                 </tr>
@@ -215,6 +315,16 @@ export default function AdminHomeCareBookings() {
                     <td className="px-4 py-3 text-gray-700">{b.time_slot}</td>
 
                     <td className="px-4 py-3">
+  <span
+    className={`px-3 py-1 rounded-full text-xs font-semibold ${statusClass(
+      b.status
+    )}`}
+  >
+    {formatStatus(b.status)}
+  </span>
+</td>
+
+                    <td className="px-4 py-3">
                       {b.patient_latitude && b.patient_longitude ? (
                         <div className="flex flex-col gap-2">
                           <a
@@ -241,6 +351,82 @@ export default function AdminHomeCareBookings() {
                         </span>
                       )}
                     </td>
+
+                    <td className="px-4 py-3">
+  <div className="flex flex-col gap-2 min-w-[130px]">
+
+    {/* PENDING */}
+    {b.status === "PENDING" && (
+      <>
+        <button
+          type="button"
+          disabled={updatingId === b.id}
+          onClick={() =>
+            updateBookingStatus(b.id, "CONFIRMED")
+          }
+          className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 disabled:opacity-50"
+        >
+          {updatingId === b.id
+            ? "Updating..."
+            : "Accept"}
+        </button>
+
+        <button
+          type="button"
+          disabled={updatingId === b.id}
+          onClick={() =>
+            updateBookingStatus(b.id, "REJECTED")
+          }
+          className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 disabled:opacity-50"
+        >
+          Reject
+        </button>
+      </>
+    )}
+
+    {/* CONFIRMED */}
+    {b.status === "CONFIRMED" && (
+      <button
+        type="button"
+        disabled={updatingId === b.id}
+        onClick={() =>
+          updateServiceStatus(b.id, "IN_PROGRESS")
+        }
+        className="px-3 py-1.5 bg-cyan-100 text-cyan-700 rounded-lg text-xs font-medium hover:bg-cyan-200 disabled:opacity-50"
+      >
+        {updatingId === b.id
+          ? "Starting..."
+          : "Start Service"}
+      </button>
+    )}
+
+    {/* IN PROGRESS */}
+    {b.status === "IN_PROGRESS" && (
+      <button
+        type="button"
+        disabled={updatingId === b.id}
+        onClick={() =>
+          updateServiceStatus(b.id, "COMPLETED")
+        }
+        className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 disabled:opacity-50"
+      >
+        {updatingId === b.id
+          ? "Completing..."
+          : "Complete"}
+      </button>
+    )}
+
+    {/* FINAL STATES */}
+    {["REJECTED", "CANCELLED", "COMPLETED"].includes(
+      b.status
+    ) && (
+      <span className="text-xs text-gray-400">
+        No action
+      </span>
+    )}
+
+  </div>
+</td>
                   </tr>
                 ))
               )}

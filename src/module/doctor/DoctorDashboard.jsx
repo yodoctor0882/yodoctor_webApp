@@ -11,19 +11,20 @@ import {
   FaQrcode,
   FaDownload,
   FaTimes,
+  FaClock,
+  FaFileMedical,
 } from "react-icons/fa";
-import { useSocket } from "../../context/SocketContext";
 import { useNavigate } from "react-router-dom";
 import { notify } from "../../utils/notify";
 import api from "../../services/api";
-
+import { useImage } from "../../context/ImageContext";
 import {
   cancelRemainingAppointments,
   updateClinicStatus,
   getMyQR,
 } from "../../services/doctorService";
 import useDoctorProfile from "../../hooks/doctorHooks/useDoctorProfile";
-
+import CertificateService from "./pages/CertificateService";
 const QRCodeCanvas = lazy(() =>
   import("qrcode.react").then((module) => ({
     default: module.QRCodeCanvas,
@@ -97,121 +98,70 @@ const ActionCard = ({ icon, title, subtitle, onClick, accent = false }) => (
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
-
-  const [dashboard, setDashboard] = useState({
-    pendingRequests: 0,
-    todayQueue: 0,
-    completedToday: 0,
-  });
   const [doctorName, setDoctorName] = useState("");
   const [isOnline, setIsOnline] = useState(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [slot, setSlot] = useState("MORNING");
   const [reason, setReason] = useState("");
   const [cancelLoading, setCancelLoading] = useState(false);
-  const { socket, connected } = useSocket();
 
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrValue, setQrValue] = useState("");
   const [doctorId, setDoctorId] = useState(null);
   const [qrLoading, setQrLoading] = useState(false);
 
-  const { profile, profileImage } = useDoctorProfile();
-
-useEffect(() => {
-  const checkSubscription = async () => {
-    try {
-      const res = await api.get("/razorpay/subscriptions/active");
-
-if (!res.data?.data?.subscription) {
-  localStorage.removeItem("token");
-  localStorage.removeItem("loggedInUser");
-
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("loggedInUser");
-
-  navigate("/doctorloginpage", {
-    replace: true,
-  });
-
-  return;
-}
-
-      loadDashboard();
-    } catch (err) {
-  console.error(err);
-
-  localStorage.removeItem("token");
-  localStorage.removeItem("loggedInUser");
-
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("loggedInUser");
-
-  navigate("/doctorloginpage", {
-    replace: true,
-  });
-}
-  };
-
-  checkSubscription();
-}, [navigate]);
+  const { profile } = useDoctorProfile();
+  const { doctorImage } = useImage();
 
 
 
+const [certificateEnabled, setCertificateEnabled] = useState(false);
+const [certificateFee, setCertificateFee] = useState(0);
 
-const loadDashboard = async () => {
-  try {
-    const res = await api.get("/doctor/dashboard");
+const [certificateModalOpen, setCertificateModalOpen] =
+  useState(false);
 
-    setDashboard({
-      pendingRequests: res.data.pendingRequests || 0,
-      todayQueue: res.data.todayQueue || 0,
-      completedToday: res.data.completedToday || 0,
-    });
-
-    setDoctorName(res.data.doctor?.doctorName || "Doctor");
-    setIsOnline(res.data.doctor?.isAvailable ?? true);
-
-  } catch (err) {
-    console.error("Dashboard load failed", err);
-  }
-};
+const [certificateModalMode, setCertificateModalMode] =
+  useState("start");
 
   useEffect(() => {
-  if (!socket || !connected) return;
-
-  const handleQueueUpdate = (data) => {
-    setDashboard((prev) => ({
-      ...prev,
-      todayQueue: data.currentToken || prev.todayQueue,
-    }));
-
-    notify.success(
-      `Now Serving Token #${data.currentToken}`
-    );
-  };
-
-  socket.on("queue-updated", handleQueueUpdate);
-
-  return () => {
-    socket.off("queue-updated", handleQueueUpdate);
-  };
-}, [socket, connected]);
-useEffect(() => {
-  if (!socket || !connected) return;
-
-  const handleNewAppointment = () => {
     loadDashboard();
+    loadCertificateService();
+  }, []);
 
-    notify.success(data?.message || "New appointment received.");
+  const loadDashboard = async () => {
+    try {
+      const res = await api.get("/doctor/dashboard");
+      setDoctorName(res.data.doctor?.doctorName || "Doctor");
+      setIsOnline(res.data.doctor?.isAvailable ?? true);
+    } catch (err) {
+      console.error("Dashboard load failed", err);
+    }
   };
 
-  socket.on("appointment-requested", handleNewAppointment);
+  const loadCertificateService = async () => {
+  try {
+    const res = await api.get("/doctor/get-certificate");
 
-  return () => {
-    socket.off("appointment-requested", handleNewAppointment);
-  };
-}, [socket, connected]);
+    if (res.data?.success && res.data?.data) {
+      const data = res.data.data;
+
+      setCertificateEnabled(Boolean(data.enabled));
+      setCertificateFee(Number(data.fee || 0));
+    } else {
+      setCertificateEnabled(false);
+      setCertificateFee(0);
+    }
+  } catch (err) {
+    console.error(
+      "Certificate service load failed:",
+      err
+    );
+
+    setCertificateEnabled(false);
+    setCertificateFee(0);
+  }
+};
 
   const toggleAvailability = async () => {
     const newStatus = !isOnline;
@@ -260,41 +210,41 @@ useEffect(() => {
     }
   };
 
-const downloadQR = async () => {
-  try {
-    const res = await api.post(
-      "/doctor/download-qr",
-      {
-        qrValue,
-        doctorName,
-        specialization: profile?.specialization,
-      },
-      {
-        responseType: "blob", 
-      }
-    );
+  const downloadQR = async () => {
+    try {
+      const res = await api.post(
+        "/doctor/download-qr",
+        {
+          qrValue,
+          doctorName,
+          specialization: profile?.specialization,
+        },
+        {
+          responseType: "blob",
+        },
+      );
 
-    const url = window.URL.createObjectURL(new Blob([res.data]));
+      const url = window.URL.createObjectURL(new Blob([res.data]));
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `doctor-${doctorId}-qr.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  } catch (err) {
-    console.error("Download failed", err);
-    notify.error("Failed to download QR");
-  }
-};
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `doctor-${doctorId}-qr.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      console.error("Download failed", err);
+      notify.error("Failed to download QR");
+    }
+  };
   const greeting = (() => {
     const h = new Date().getHours();
 
-  if (h >= 5 && h < 12) return "Good Morning";
-  if (h >= 12 && h < 17) return "Good Afternoon";
-  if (h >= 17 && h < 21) return "Good Evening";
-  if (h >= 21 && h < 24) return "Good Late Night";
-  return "Good Night";
+    if (h >= 5 && h < 12) return "Good Morning";
+    if (h >= 12 && h < 17) return "Good Afternoon";
+    if (h >= 17 && h < 21) return "Good Evening";
+    if (h >= 21 && h < 24) return "Good Late Night";
+    return "Good Night";
   })();
 
   return (
@@ -318,21 +268,23 @@ const downloadQR = async () => {
               {doctorName || "Doctor"}
             </h1>
           </div>
-          <button
-            onClick={toggleAvailability}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-semibold transition hover:-translate-y-px
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleAvailability}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-semibold transition hover:-translate-y-px
               ${
                 isOnline
                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
                   : "bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200"
               }`}
-          >
-            {isOnline ? <FaToggleOn size={18} /> : <FaToggleOff size={18} />}
-            {isOnline ? "Available" : "Offline"}
-          </button>
+            >
+              {isOnline ? <FaToggleOn size={18} /> : <FaToggleOff size={18} />}
+              {isOnline ? "Available" : "Offline"}
+            </button>
+          </div>
         </div>
 
-        <div className=" [animation-delay:0.07s] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
+        <div className=" [animation-delay:0.07s] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-15 mb-14">
           <div
             className="bg-white border border-black/[0.07] rounded-[18px] p-6 flex gap-4 items-center"
             style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}
@@ -342,7 +294,7 @@ const downloadQR = async () => {
               style={{ boxShadow: "0 4px 14px rgba(14,116,144,0.18)" }}
             >
               <img
-                src={profileImage || FALLBACK_IMAGE}
+                src={doctorImage || FALLBACK_IMAGE}
                 alt="doctor"
                 className="w-full h-full rounded-[12px] object-cover border-2 border-white block"
                 onError={(e) => {
@@ -359,15 +311,15 @@ const downloadQR = async () => {
                 {doctorName}
               </h2>
               <p className="font-dm text-[14px] text-[#6b7f8a] mt-0.5 truncate">
-                {profile.specialization}
+                {profile?.specialization || "Specialist"}
               </p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[13px] text-[#9fb0b8]">
-                  {profile.experience_years} yrs exp
+                  {profile?.experience_years ?? 0} yrs exp
                 </span>
                 <span className="w-1 h-1 bg-[#d1dde3] rounded-full" />
                 <span className="text-[13px] text-[#9fb0b8]">
-                  {profile.rating ? Number(profile.rating).toFixed(1) : "N/A"}{" "}
+                  {profile?.rating ? Number(profile.rating).toFixed(1) : "N/A"}{" "}
                   ⭐
                 </span>
               </div>
@@ -381,6 +333,30 @@ const downloadQR = async () => {
             onClick={() => navigate("/doctordashboard/livequeue")}
           />
           <ActionCard
+            icon={<FaFileMedical />}
+            title="Certificate Requests"
+            subtitle="View and manage certificate requests"
+            onClick={() => navigate("/doctordashboard/Certificaterequest")}
+            tagColor="bg-orange-50 text-orange-500"
+            iconColor="bg-orange-50 text-orange-500"
+          />
+        </div>
+
+        <div className="[animation-delay:0.13s] grid grid-cols-1 sm:grid-cols-3 gap-15 mb-14">
+          <ActionCard
+            icon={<FaExclamationTriangle className="text-red-500" />}
+            title="Emergency Cancellations"
+            subtitle="Cancel remaining slot appointments"
+            onClick={() => setShowCancelModal(true)}
+          />
+          <ActionCard
+            icon={<FaStar />}
+            title="Patient Reviews"
+            subtitle="Read feedback from your patients"
+            onClick={() => navigate("/doctordashboard/reviews")}
+          />
+
+          <ActionCard
             icon={<FaBook />}
             title="Manual Booking"
             subtitle="Register a walk-in patient manually"
@@ -388,34 +364,180 @@ const downloadQR = async () => {
           />
         </div>
 
-        <div className="[animation-delay:0.13s] grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-          <StatCard
-            icon={<FaBook />}
-            label="Pending Requests"
-            value={dashboard.pendingRequests}
-            tag="New"
-            tagColor="bg-orange-50 text-orange-500"
-            iconColor="bg-orange-50 text-orange-500"
-          />
-          <StatCard
-            icon={<FaUser />}
-            label="Today's Queue"
-            value={dashboard.todayQueue}
-            tag="Today"
-            tagColor="bg-[#ecfeff] text-[#0e7490]"
-            iconColor="bg-[#ecfeff] text-[#0e7490]"
-          />
-          <StatCard
-            icon={<FaCheckCircle />}
-            label="Completed Today"
-            value={dashboard.completedToday}
-            tag="Done"
-            tagColor="bg-emerald-50 text-emerald-600"
-            iconColor="bg-emerald-50 text-emerald-600"
-          />
+        <div className=" [animation-delay:0.19s] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<div className="max-w-md">
+  <div
+    className="
+      bg-white
+      rounded-[18px]
+      border border-slate-200
+      shadow-[0_3px_8px_rgba(15,23,42,0.10)]
+      p-6
+      flex flex-col
+      gap-5
+    "
+  >
+    {/* Header */}
+    <div className="flex items-start justify-between gap-4">
+
+      <div className="flex items-center gap-4">
+        <div
+          className="
+            w-14 h-14
+            rounded-2xl
+            bg-[#ecfbf5]
+            flex items-center justify-center
+            flex-shrink-0
+          "
+        >
+          <svg
+            className="w-7 h-7 text-[#00a875]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M9 12h6m-6 4h6M7 3h7l4 4v14H7a2 2 0 01-2-2V5a2 2 0 012-2z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.8"
+              d="M14 3v5h5"
+            />
+          </svg>
         </div>
 
-        <div className=" [animation-delay:0.19s] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <h2 className="text-[20px] font-semibold text-[#071a35]">
+            Certificate Service
+          </h2>
+
+          <p className="text-[15px] text-[#607594] mt-1">
+            Medical Certificate
+          </p>
+        </div>
+      </div>
+
+      {/* Status */}
+      <span
+        className={`
+          inline-flex items-center gap-2
+          px-3.5 py-1.5
+          rounded-full
+          text-[13px] font-semibold
+          ${
+            certificateEnabled
+              ? "bg-[#e9fbf3] text-[#08a876]"
+              : "bg-[#f1f5f9] text-[#64748b]"
+          }
+        `}
+      >
+        <span
+          className={`
+            w-2 h-2 rounded-full
+            ${
+              certificateEnabled
+                ? "bg-[#10b981]"
+                : "bg-[#94a3b8]"
+            }
+          `}
+        />
+
+        {certificateEnabled ? "Active" : "Inactive"}
+      </span>
+    </div>
+
+    {/* Active */}
+    {certificateEnabled ? (
+      <>
+        <p className="text-[16px] text-[#58708f] leading-[1.7]">
+          Allow patients to apply for medical certificates
+          through your profile.
+        </p>
+
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-[14px] text-[#58708f] mb-1">
+            Certificate Fee - <span className="text-[14px] font-bold text-[#071a35]"> ₹{Number(certificateFee).toLocaleString("en-IN")}</span>
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setCertificateModalMode("edit");
+            setCertificateModalOpen(true);
+          }}
+          className="
+            w-full
+            h-[52px]
+            rounded-[10px]
+            border border-[#2860ff]
+            text-[#2450d8]
+            text-[17px]
+            font-medium
+            flex items-center justify-center gap-3
+            hover:bg-[#f5f8ff]
+            transition
+          "
+        >
+          <svg
+            className="w-[17px] h-[17px]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M15.232 5.232l3.536 3.536M4 20h4l10.5-10.5a2.121 2.121 0 00-3-3L5 17v3z"
+            />
+          </svg>
+
+          Edit Service
+        </button>
+      </>
+    ) : (
+      <>
+        <p className="text-[18px] text-[#58708f] leading-[1.7]">
+          Certificate service is currently not available to
+          patients.
+        </p>
+
+        <button
+          type="button"
+          onClick={() => {
+            setCertificateModalMode("start");
+            setCertificateModalOpen(true);
+          }}
+          className="
+            w-full
+            h-[51px]
+            rounded-[10px]
+            bg-[#2450d8]
+            text-white
+            text-[17px]
+            font-semibold
+            flex items-center justify-center gap-3
+            hover:bg-[#1f46c4]
+            transition
+          "
+        >
+          <span className="text-[25px] font-light leading-none">
+            +
+          </span>
+
+          Start Service
+        </button>
+      </>
+    )}
+  </div>
+</div>
+
           <div
             className="rounded-[18px] p-6 flex flex-col justify-between gap-4 text-white"
             style={{
@@ -443,19 +565,6 @@ const downloadQR = async () => {
               Show QR Code
             </button>
           </div>
-
-          <ActionCard
-            icon={<FaExclamationTriangle className="text-red-500" />}
-            title="Emergency Cancellations"
-            subtitle="Cancel remaining slot appointments"
-            onClick={() => setShowCancelModal(true)}
-          />
-          <ActionCard
-            icon={<FaStar />}
-            title="Patient Reviews"
-            subtitle="Read feedback from your patients"
-            onClick={() => navigate("/doctordashboard/reviews")}
-          />
         </div>
       </div>
 
@@ -615,6 +724,16 @@ const downloadQR = async () => {
           </div>
         </div>
       )}
+
+<CertificateService
+  openFromDashboard={certificateModalOpen}
+  initialMode={certificateModalMode}
+  onClose={() => setCertificateModalOpen(false)}
+  certificateEnabled={certificateEnabled}
+  certificateFee={certificateFee}
+  setCertificateEnabled={setCertificateEnabled}
+  setCertificateFee={setCertificateFee}
+/>
     </div>
   );
 };

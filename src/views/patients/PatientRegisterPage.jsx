@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { CalendarDays, User, Mail, Lock, Phone } from "lucide-react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { validateRegisterForm } from "../../controllers/FormValidation";
 import { notify } from "../../utils/notify";
 import { PatientSignupApi } from "../../services/patient/PatientSignupApi";
@@ -21,6 +21,10 @@ const ClientRegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const params = new URLSearchParams(location.search);
+  const redirect = params.get("redirect");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,8 +48,13 @@ const ClientRegisterPage = () => {
         dob: formData.dob,
       };
       await PatientSignupApi(payload);
-      notify.success("Registration successful!");
-      navigate("/clientloginpage");
+      notify.success("Registration successful! Please login.");
+
+      if (redirect) {
+        navigate(`/clientloginpage?redirect=${encodeURIComponent(redirect)}`);
+      } else {
+        navigate("/clientloginpage");
+      }
     } catch (error) {
       notify.error(error?.response?.data?.message || "Registration failed");
     }
@@ -272,7 +281,15 @@ const ClientRegisterPage = () => {
           >
             Already have an account?{" "}
             <button
-              onClick={() => navigate("/clientLoginpage")}
+              onClick={() => {
+                if (redirect) {
+                  navigate(
+                    `/clientloginpage?redirect=${encodeURIComponent(redirect)}`,
+                  );
+                } else {
+                  navigate("/clientloginpage");
+                }
+              }}
               className="font-semibold cursor-pointer hover:underline transition-all"
               style={{ color: "#0086C3", background: "none", border: "none" }}
             >

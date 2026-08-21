@@ -16,7 +16,6 @@ import qrBooking from "../assets/images/qr-booking.png";
 import onlineBooking from "../assets/images/online-booking.png";
 import certificate from "../assets/images/certificate.png";
 
-
 const LandingPage = () => {
   const navigate = useNavigate();
   const { language, lang } = useLanguage();
@@ -60,14 +59,15 @@ const LandingPage = () => {
     }
   }, [navigate]);
   const heroCards = [
-    {
-      img: labTesting,
-      label: t.labTest || "Lab Tests",
-      sub: "Sample Pickup at Your Door",
-      link: "/clientloginpage?redirect=/client/lab-tests",
-      tagBg: "bg-sky-500",
-      tag: "HOME",
-      accentColor: "#0099ee",
+
+     {
+      img: onlineBooking,
+      label: t.onlinebooking || "Online Booking",
+      sub: "Book from anywhere",
+      link: "/clientloginpage?redirect=/client/book-appointment",
+      tag: "ONLINE",
+      tagBg: "bg-indigo-500",
+      accentColor: "#6366F1",
     },
     {
       img: qrBooking,
@@ -78,34 +78,36 @@ const LandingPage = () => {
       tagBg: "bg-cyan-500",
       accentColor: "#00D4FF",
     },
-    {
-      img: onlineBooking,
-      label: t.onlinebooking || "Online Booking",
-      sub: "Book from anywhere",
-      link: "/clientloginpage?redirect=/client/book-appointment",
-      tag: "ONLINE",
-      tagBg: "bg-indigo-500",
-      accentColor: "#6366F1",
-    },
+   
     {
       img: certificate,
       label: t.Certificate || "Video Consult",
       sub: "Consult from home",
-      link: "/clientloginpage?redirect=/client/apply-certificate",
+      link: "/clientloginpage?redirect=/client/certificatedoctors",
       tag: "VIDEO",
       tagBg: "bg-pink-500",
       accentColor: "#ec4899",
     },
+     {
+      img: labTesting,
+      label: t.labTest || "Lab Tests",
+      sub: "Sample Pickup at Your Door",
+      link: "/clientloginpage?redirect=/client/lab-tests",
+      tagBg: "bg-sky-500",
+      tag: "HOME",
+      accentColor: "#0099ee",
+    },
+   
     {
       img: homecareservices,
       label: t.booknurse || "Book Nurse",
       sub: "Care at your home",
-      link: "/home-service-booking",
+      link: "/clientloginpage?redirect=/client/home-service-booking",
       tag: "HOME CARE",
       tagBg: "bg-green-500",
       accentColor: "#22c55e",
     },
-     {
+    {
       img: medicineDelivery,
       label: t.medicine || "24/7 Medicines",
       sub: "Essentials at your doorstep",
@@ -226,11 +228,37 @@ const LandingPage = () => {
                         backdropFilter: "blur(20px)",
                       }}
                     >
-                      <img
-                        src={doctor.profile_image}
-                        alt={doctor.doctorName}
-                        className="w-full h-[60%] object-cover"
-                      />
+                      <div className="w-full h-[60%] relative">
+                        {doctor.profile_image ? (
+                          <img
+                            src={doctor.profile_image}
+                            alt={doctor.doctorName || "Doctor"}
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              e.currentTarget.nextElementSibling.style.display =
+                                "flex";
+                            }}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : null}
+
+                        {/* Fallback */}
+                        <div
+                          className={`absolute inset-0 bg-[#10213d] items-center justify-center ${
+                            doctor.profile_image ? "hidden" : "flex"
+                          }`}
+                        >
+                          <div className="w-28 h-28 rounded-full bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center">
+                            <span className="text-5xl font-bold text-cyan-300">
+                              {doctor.doctorName
+                                ?.replace(/^dr\.?\s*/i, "")
+                                ?.trim()
+                                ?.charAt(0)
+                                ?.toUpperCase() || "D"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
 
                       <div className="p-5 text-white">
                         <h2 className="text-2xl font-bold">
@@ -312,36 +340,36 @@ const LandingPage = () => {
           </div>
         </div>
 
-<div className="hidden md:flex justify-center items-center  py-16">
-  <div className="w-full max-w-6xl h-[600px]">
-    <Swiper
-      modules={[Autoplay, Pagination]}
-      autoplay={{
-        delay: 3000,
-        disableOnInteraction: false,
-      }}
-      pagination={{ clickable: true }}
-      loop={true}
-      className="w-full  rounded-4xl overflow-hidden "
-    >
-      <SwiperSlide className="flex items-center justify-center">
-        <img
-          src={image1}
-          alt="YoDoctor Banner"
-          className="w-full h-full object-contain"
-        />
-      </SwiperSlide>
+        <div className="hidden md:flex justify-center items-center  py-16">
+          <div className="w-full max-w-6xl h-[600px]">
+            <Swiper
+              modules={[Autoplay, Pagination]}
+              autoplay={{
+                delay: 3000,
+                disableOnInteraction: false,
+              }}
+              pagination={{ clickable: true }}
+              loop={true}
+              className="w-full  rounded-4xl overflow-hidden "
+            >
+              <SwiperSlide className="flex items-center justify-center">
+                <img
+                  src={image1}
+                  alt="YoDoctor Banner"
+                  className="w-full h-full object-contain"
+                />
+              </SwiperSlide>
 
-      <SwiperSlide className="flex items-center justify-center">
-        <img
-          src={image2}
-          alt="YoDoctor Banner"
-          className="w-full h-full object-contain"
-        />
-      </SwiperSlide>
-    </Swiper>
-  </div>
-</div>
+              <SwiperSlide className="flex items-center justify-center">
+                <img
+                  src={image2}
+                  alt="YoDoctor Banner"
+                  className="w-full h-full object-contain"
+                />
+              </SwiperSlide>
+            </Swiper>
+          </div>
+        </div>
 
         <style>{`
           @keyframes cardFloat {
